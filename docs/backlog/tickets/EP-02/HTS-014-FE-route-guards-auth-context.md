@@ -6,7 +6,7 @@
 | **Type** | FE |
 | **Epic** | EP-02 Authentication |
 | **Story** | ST-05 Enforcement |
-| **Status** | TODO |
+| **Status** | DONE |
 | **Depends on** | HTS-012, HTS-013 |
 | **Blocks** | HTS-016 |
 | **Traceability** | FR-A12; NFR-2, NFR-3; architecture.md §11 |
@@ -29,10 +29,10 @@ route guards that redirect unauthenticated users to login, and global handling o
 - Because session lives in an HttpOnly cookie, a refresh re-establishes auth via `me` (NFR-2).
 
 ## Acceptance criteria
-- [ ] AC-1 — Unauthenticated access to a guarded route redirects to `/login`.
-- [ ] AC-2 — Authenticated user reaches guarded routes; refresh keeps them logged in.
-- [ ] AC-3 — A 401 from any API call clears auth state and redirects to login.
-- [ ] AC-4 — After login, the user lands on their originally requested route (or board).
+- [x] AC-1 — Unauthenticated access to a guarded route redirects to `/login`.
+- [x] AC-2 — Authenticated user reaches guarded routes; refresh keeps them logged in.
+- [x] AC-3 — A 401 from any API call clears auth state and redirects to login.
+- [x] AC-4 — After login, the user lands on their originally requested route (or board).
 
 ## Test plan
 **Component (Vitest + RTL):**
@@ -50,7 +50,20 @@ npm run dev   # try visiting /board while logged out
 ```
 
 ## Definition of Done
-- [ ] AC-1..AC-4 met
-- [ ] Component + MSW tests pass (positive/negative/boundary)
-- [ ] Refresh-survives-login verified (NFR-2)
-- [ ] INDEX.md status updated
+- [x] AC-1..AC-4 met
+- [x] Component + MSW tests pass (positive/negative/boundary)
+- [x] Refresh-survives-login verified (NFR-2)
+- [x] INDEX.md status updated
+
+## Implementation notes
+- `AuthProvider` (from HTS-012) already bootstraps from `GET /api/auth/me` — refresh re-fetches
+  it, so auth survives reload (NFR-2). This ticket adds the guard + global 401 handling.
+- `auth/RequireAuth`: while `me` is in flight → top-level `Loading` (no login flash); when
+  anonymous → `<Navigate to="/login" state={{from}}>`; else `<Outlet/>`. Wired in `router.tsx`
+  wrapping the `AppLayout` group.
+- Global 401: `api/client` exposes `setUnauthorizedHandler`; `AuthProvider` registers one that
+  clears the cached `me` on any 401, so `RequireAuth` then redirects — no per-call handling.
+- `LoginPage` now returns the user to the intended route (`location.state.from`, default
+  `/board`) after login (AC-4).
+- Tests: `RequireAuth.test` (authenticated render, anonymous→login, loading→route boundary,
+  mid-session 401→login); `App.test` updated to authenticate for the now-guarded routes.

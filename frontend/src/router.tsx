@@ -5,6 +5,7 @@
 
 import { createBrowserRouter, Navigate, Outlet } from 'react-router-dom';
 import { AuthProvider } from './auth/AuthContext';
+import { RequireAuth } from './auth/RequireAuth';
 import { AppLayout } from './layout/AppLayout';
 import { LoginPage } from './features/auth/LoginPage';
 import { SignupPage } from './features/auth/SignupPage';
@@ -30,12 +31,17 @@ export const routes = [
       { path: '/signup', element: <SignupPage /> },
       { path: '/verify', element: <VerifyPage /> },
       {
-        element: <AppLayout />,
+        element: <RequireAuth />,
         children: [
-          { path: '/board', element: <BoardPage /> },
-          { path: '/teams', element: <TeamsPage /> },
-          { path: '/epics', element: <EpicsPage /> },
-          { path: '/tickets/:id', element: <TicketDetailsPage /> },
+          {
+            element: <AppLayout />,
+            children: [
+              { path: '/board', element: <BoardPage /> },
+              { path: '/teams', element: <TeamsPage /> },
+              { path: '/epics', element: <EpicsPage /> },
+              { path: '/tickets/:id', element: <TicketDetailsPage /> },
+            ],
+          },
         ],
       },
       { path: '*', element: <NotFoundPage /> },

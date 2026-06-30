@@ -53,7 +53,7 @@ come from [`../requirements-analysis.md`](../requirements-analysis.md).
 | HTS-011 | BE | Login/logout: session cookie, reject unverified, lifetime config | ST-04 | HTS-007 | FR-A3,A7; AMB-7; DoD-1 | DONE |
 | HTS-012 | FE | Login screen + logout control (user menu) | ST-04 | HTS-003,HTS-011 | FR-S4 | DONE |
 | HTS-013 | BE | Secure all endpoints except auth set; CSRF; 401/403 error model | ST-05 | HTS-011 | FR-A12; FR-P4,P6; NFR-1 | DONE |
-| HTS-014 | FE | Route guards + auth context + 401 handling/redirect | ST-05 | HTS-012,HTS-013 | FR-A12; NFR-2 | TODO |
+| HTS-014 | FE | Route guards + auth context + 401 handling/redirect | ST-05 | HTS-012,HTS-013 | FR-A12; NFR-2 | DONE |
 
 ### EP-03 Teams
 | ID | Type | Title | Story | Deps | Traceability | Status |

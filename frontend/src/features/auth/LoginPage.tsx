@@ -3,7 +3,7 @@
 // account's email is not verified (FR-A7 path).
 
 import { useState, type FormEvent } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../auth/AuthContext';
 import { ApiError } from '../../api/client';
 import { ResendVerification } from './ResendVerification';
@@ -11,6 +11,9 @@ import { ResendVerification } from './ResendVerification';
 export function LoginPage() {
   const { login } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
+  const from =
+    (location.state as { from?: { pathname?: string } } | null)?.from?.pathname ?? '/board';
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -33,7 +36,7 @@ export function LoginPage() {
     setSubmitting(true);
     try {
       await login(email, password);
-      navigate('/board');
+      navigate(from, { replace: true });
     } catch (err) {
       if (err instanceof ApiError && err.status === 403 && err.code === 'EMAIL_NOT_VERIFIED') {
         setNotVerified(true);

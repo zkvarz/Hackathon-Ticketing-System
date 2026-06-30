@@ -58,6 +58,13 @@ async function parseJsonSafe<T>(res: Response): Promise<T | null> {
 
 const STATE_CHANGING = new Set(['POST', 'PUT', 'PATCH', 'DELETE']);
 
+// Global 401 hook (HTS-014). The AuthProvider registers a handler so any expired/invalid
+// session surfaced by a data call clears auth state; the route guard then redirects to login.
+let onUnauthorized: (() => void) | null = null;
+export function setUnauthorizedHandler(handler: (() => void) | null) {
+  onUnauthorized = handler;
+}
+
 /**
  * Resolve an `/api/...` path to a request URL. In the browser this stays same-origin (so the
  * session cookie is sent); we resolve against `location.origin` so the underlying fetch always
@@ -100,6 +107,7 @@ export async function request<T>(path: string, options: RequestOptions = {}): Pr
   });
 
   if (!res.ok) {
+    if (res.status === 401) onUnauthorized?.();
     const errorBody = await parseJsonSafe<ApiErrorBody>(res);
     const message = errorBody?.message ?? `Request failed with status ${res.status}`;
     throw new ApiError(res.status, errorBody, message);

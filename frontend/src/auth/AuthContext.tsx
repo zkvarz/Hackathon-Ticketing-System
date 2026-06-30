@@ -2,9 +2,10 @@
 // login/logout. Because the session lives in an HttpOnly cookie, a page refresh re-establishes
 // auth by re-fetching `me` (NFR-2). Route guards + global 401 handling are added in HTS-014.
 
-import { createContext, useCallback, useContext, useMemo, type ReactNode } from 'react';
+import { createContext, useCallback, useContext, useEffect, useMemo, type ReactNode } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { getCurrentUser, login as loginRequest, logout as logoutRequest } from '../api/auth';
+import { setUnauthorizedHandler } from '../api/client';
 import type { UserResponse } from '../api/types';
 
 const AUTH_KEY = ['auth', 'me'] as const;
@@ -36,6 +37,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     },
     [queryClient],
   );
+
+  // Any 401 from a data call clears auth state; RequireAuth then redirects to login (HTS-014).
+  useEffect(() => {
+    setUnauthorizedHandler(() => queryClient.setQueryData(AUTH_KEY, null));
+    return () => setUnauthorizedHandler(null);
+  }, [queryClient]);
 
   const logout = useCallback(async () => {
     try {
