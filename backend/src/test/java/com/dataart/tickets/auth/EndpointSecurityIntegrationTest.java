@@ -5,6 +5,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.testcontainers.service.connection.ServiceConnection;
+import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.testcontainers.containers.PostgreSQLContainer;
 import org.testcontainers.junit.jupiter.Container;
@@ -58,12 +59,14 @@ class EndpointSecurityIntegrationTest {
                 .andExpect(jsonPath("$.code").value("FORBIDDEN"));
     }
 
-    // AC-4: with auth + a valid CSRF token, the request passes the security filters (it then
-    // 404s only because the HTS-015 controller isn't here yet — i.e. it is NOT 401/403).
+    // AC-4: with auth + a valid CSRF token, a state-changing request passes the security filters
+    // and is handled normally (creates the team → 201), rather than being blocked (401/403).
     @Test
     void postWithAuthAndCsrfPassesSecurity() throws Exception {
-        mockMvc.perform(post("/api/teams").with(user("u@example.com")).with(csrf()))
-                .andExpect(status().isNotFound());
+        mockMvc.perform(post("/api/teams").with(user("u@example.com")).with(csrf())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"name\":\"Security Team\"}"))
+                .andExpect(status().isCreated());
     }
 
     // Boundary: a near-miss business path is not anonymously reachable.
