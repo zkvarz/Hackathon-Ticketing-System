@@ -4,6 +4,7 @@
 import { createBrowserRouter, Navigate } from 'react-router-dom';
 import { AppLayout } from './layout/AppLayout';
 import { SignupPage } from './features/auth/SignupPage';
+import { VerifyPage } from './features/auth/VerifyPage';
 import {
   BoardPage,
   EpicsPage,
@@ -11,7 +12,6 @@ import {
   NotFoundPage,
   TeamsPage,
   TicketDetailsPage,
-  VerifyPage,
 } from './pages/placeholders';
 
 export const routes = [

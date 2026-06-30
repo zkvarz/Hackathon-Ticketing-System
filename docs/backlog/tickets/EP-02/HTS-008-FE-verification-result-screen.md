@@ -6,7 +6,7 @@
 | **Type** | FE |
 | **Epic** | EP-02 Authentication |
 | **Story** | ST-02 Email verification |
-| **Status** | TODO |
+| **Status** | DONE |
 | **Depends on** | HTS-003, HTS-007 |
 | **Blocks** | HTS-010 |
 | **Traceability** | FR-S2, FR-A9; NFR-3; architecture.md §11; wireframe image2 |
@@ -27,10 +27,10 @@ resend action placeholder wired in HTS-010).
 - Success routes to `/login`.
 
 ## Acceptance criteria
-- [ ] AC-1 — A valid token shows the success state and a working "Continue to login" link.
-- [ ] AC-2 — An expired/invalid token shows the error state with a resend affordance.
-- [ ] AC-3 — A missing token query param shows the invalid state without calling the API.
-- [ ] AC-4 — A loading state is shown while the verify call is in flight.
+- [x] AC-1 — A valid token shows the success state and a working "Continue to login" link.
+- [x] AC-2 — An expired/invalid token shows the error state with a resend affordance.
+- [x] AC-3 — A missing token query param shows the invalid state without calling the API.
+- [x] AC-4 — A loading state is shown while the verify call is in flight.
 
 ## Test plan
 **Component (Vitest + RTL):**
@@ -49,7 +49,17 @@ npm run dev   # visit /verify?token=fake
 ```
 
 ## Definition of Done
-- [ ] AC-1..AC-4 met
-- [ ] Component + MSW tests pass (positive/negative/boundary)
-- [ ] Loading/success/error states present (NFR-3)
-- [ ] INDEX.md status updated
+- [x] AC-1..AC-4 met
+- [x] Component + MSW tests pass (positive/negative/boundary)
+- [x] Loading/success/error states present (NFR-3)
+- [x] INDEX.md status updated
+
+## Implementation notes
+- `features/auth/VerifyPage.tsx` wired into the router (replaces the `/verify` placeholder).
+- Reads `?token=` via `useSearchParams`; a TanStack Query (`enabled: !!token`, `retry:false`)
+  calls `GET /api/auth/verify` so a missing token never hits the API (AC-3).
+- States: loading (`Verifying your email…`) → success (`Continue to login` → `/login`, no
+  auto-login) | invalid-or-expired (message + disabled "Resend verification email" affordance
+  wired in HTS-010 + back-to-login link).
+- Tests (4, Vitest+RTL+MSW): success+login link, 400 TOKEN_INVALID → invalid state with resend
+  affordance, missing token → invalid state with API not called, loading→success boundary.

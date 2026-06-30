@@ -14,7 +14,6 @@ function Placeholder({ title }: { title: string }) {
 }
 
 export const LoginPage = () => <Placeholder title="Log in" />;
-export const VerifyPage = () => <Placeholder title="Verify email" />;
 export const BoardPage = () => <Placeholder title="Board" />;
 export const TeamsPage = () => <Placeholder title="Teams" />;
 export const EpicsPage = () => <Placeholder title="Epics" />;
