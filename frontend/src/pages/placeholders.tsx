@@ -14,7 +14,6 @@ function Placeholder({ title }: { title: string }) {
 }
 
 export const BoardPage = () => <Placeholder title="Board" />;
-export const TeamsPage = () => <Placeholder title="Teams" />;
 export const EpicsPage = () => <Placeholder title="Epics" />;
 
 export const TicketDetailsPage = () => {

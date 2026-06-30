@@ -59,7 +59,7 @@ come from [`../requirements-analysis.md`](../requirements-analysis.md).
 | ID | Type | Title | Story | Deps | Traceability | Status |
 |----|------|-------|-------|------|--------------|--------|
 | HTS-015 | BE | Team CRUD: validation, CI-unique name, 409 on delete-with-children | ST-01 | HTS-013 | FR-T1..T6; FR-P4; AMB-9 | DONE |
-| HTS-016 | FE | Team management screen: list, create, rename, delete (disabled when referenced) | ST-01 | HTS-014,HTS-015 | FR-S7; NFR-3 | TODO |
+| HTS-016 | FE | Team management screen: list, create, rename, delete (disabled when referenced) | ST-01 | HTS-014,HTS-015 | FR-S7; NFR-3 | DONE |
 
 ### EP-04 Epics
 | ID | Type | Title | Story | Deps | Traceability | Status |

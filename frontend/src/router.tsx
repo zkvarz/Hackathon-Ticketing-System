@@ -10,11 +10,11 @@ import { AppLayout } from './layout/AppLayout';
 import { LoginPage } from './features/auth/LoginPage';
 import { SignupPage } from './features/auth/SignupPage';
 import { VerifyPage } from './features/auth/VerifyPage';
+import { TeamsPage } from './features/teams/TeamsPage';
 import {
   BoardPage,
   EpicsPage,
   NotFoundPage,
-  TeamsPage,
   TicketDetailsPage,
 } from './pages/placeholders';
 
