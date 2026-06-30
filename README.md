@@ -1,4 +1,7 @@
 # Hackathon-Ticketing-System
+
+[![CI](https://github.com/zkvarz/Hackathon-Ticketing-System/actions/workflows/ci.yml/badge.svg)](https://github.com/zkvarz/Hackathon-Ticketing-System/actions/workflows/ci.yml)
+
 Build a small, working Kanban-style ticket tracker as a three-tier SPA backed by an RDBMS.
 
 > **Developers & AI agents:** start with [`AGENTS.md`](AGENTS.md) — it points to the spec,

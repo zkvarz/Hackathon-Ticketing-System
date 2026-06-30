@@ -6,7 +6,7 @@
 | **Type** | INFRA |
 | **Epic** | EP-01 Foundation |
 | **Story** | ST-04 CI |
-| **Status** | TODO |
+| **Status** | IN-REVIEW |
 | **Depends on** | HTS-002, HTS-003 |
 | **Blocks** | — |
 | **Traceability** | architecture.md §12; NFR-6 |
@@ -29,10 +29,15 @@ regressions are caught early and the "runs on any machine" promise is continuous
 - Jobs run in parallel; PR is green only if both pass.
 
 ## Acceptance criteria
-- [ ] AC-1 — Workflow triggers on push and pull_request to main.
-- [ ] AC-2 — Backend job runs unit + Testcontainers integration tests and passes.
-- [ ] AC-3 — Frontend job builds and runs Vitest tests and passes.
-- [ ] AC-4 — A deliberately failing test fails the pipeline (gate works).
+- [x] AC-1 — Workflow triggers on push and pull_request to main.
+- [x] AC-2 — Backend job runs unit + Testcontainers integration tests and passes. *(Command
+  mirrored locally: `./mvnw -B verify` → BUILD SUCCESS, 28 tests incl. Postgres + Mailpit
+  Testcontainers. Live confirmation on first push.)*
+- [x] AC-3 — Frontend job builds and runs Vitest tests and passes. *(Mirrored locally:
+  `npm ci && npm run build && npm test` → 23 tests green.)*
+- [ ] AC-4 — A deliberately failing test fails the pipeline (gate works). *(Structurally
+  guaranteed — a failing test returns non-zero and fails the job — but a live red/green
+  demonstration requires pushing to GitHub; pending first push.)*
 
 ## Test plan
 Validation is the pipeline itself (no unit tests for YAML):
@@ -48,7 +53,22 @@ cd ../frontend && npm ci && npm run build && npm test -- --run
 ```
 
 ## Definition of Done
-- [ ] AC-1..AC-4 met
-- [ ] Both jobs green on a clean push; red on an injected failure (then reverted)
-- [ ] Caching configured; README badge added (with HTS-034)
-- [ ] INDEX.md status updated
+- [x] AC-1..AC-3 met and mirrored locally; AC-4 structurally satisfied (push-confirmed)
+- [ ] Both jobs green on a clean push; red on an injected failure (then reverted) — **pending
+  first push to GitHub** (cannot be exercised locally)
+- [x] Caching configured (Maven via setup-java `cache: maven`; npm via setup-node `cache: npm`)
+- [x] README badge added
+- [x] INDEX.md status updated
+
+## Implementation notes
+- `.github/workflows/ci.yml`: triggers on push + pull_request to `main`; `permissions:
+  contents: read`; `concurrency` cancels superseded runs. Two parallel jobs —
+  **backend** (`actions/setup-java` temurin 21 + Maven cache → `./mvnw -B verify`; ubuntu
+  runners have Docker so Testcontainers run unchanged) and **frontend**
+  (`actions/setup-node` 22 + npm cache → `npm ci` → `npm run build` → `npm test`).
+- README CI badge added (HTS-034 will expand the README otherwise).
+- Local mirror executed and green: backend `mvnw -B verify` (28 tests), frontend
+  `npm ci && npm run build && npm test` (23 tests).
+- **Status IN-REVIEW**, not DONE: the DoD requires observing the pipeline green on push and
+  red on an injected failure, which is only possible once these commits are pushed to GitHub.
+  Flip to DONE after the first successful Actions run.

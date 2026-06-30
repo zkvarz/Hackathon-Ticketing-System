@@ -39,7 +39,7 @@ come from [`../requirements-analysis.md`](../requirements-analysis.md).
 | HTS-001 | INFRA | Monorepo + docker-compose scaffold (db, mailpit, backend, frontend) + .env.example | ST-01 | — | §2,§4,§5; DoD-7,DoD-8 | DONE |
 | HTS-002 | BE | Spring Boot baseline: config, Postgres, Flyway baseline, health endpoint, Dockerfile | ST-02 | HTS-001 | §3,§7; FR-P8,FR-P9 | DONE |
 | HTS-003 | FE | Vite + React + TS baseline: router shell, API client, layout, Dockerfile (nginx) | ST-03 | HTS-001 | §11; NFR-3,NFR-4 | DONE |
-| HTS-004 | INFRA | GitHub Actions CI: build + test BE & FE (Testcontainers) | ST-04 | HTS-002,HTS-003 | NFR-6 | TODO |
+| HTS-004 | INFRA | GitHub Actions CI: build + test BE & FE (Testcontainers) | ST-04 | HTS-002,HTS-003 | NFR-6 | IN-REVIEW |
 
 ### EP-02 Authentication & Accounts
 | ID | Type | Title | Story | Deps | Traceability | Status |
