@@ -1,8 +1,9 @@
-// App shell: header with nav + backend status widget, and an <Outlet/> for routed pages
-// (architecture.md §11). Feature screens render inside this layout in later epics.
+// App shell: header with nav, backend status, and a user menu (HTS-012) with logout.
+// Feature screens render inside this layout via <Outlet/> (architecture.md §11).
 
-import { NavLink, Outlet } from 'react-router-dom';
+import { NavLink, Outlet, useNavigate } from 'react-router-dom';
 import { BackendStatus } from '../components/BackendStatus';
+import { useAuth } from '../auth/AuthContext';
 
 const NAV = [
   { to: '/board', label: 'Board' },
@@ -11,6 +12,14 @@ const NAV = [
 ];
 
 export function AppLayout() {
+  const { user, logout } = useAuth();
+  const navigate = useNavigate();
+
+  async function handleLogout() {
+    await logout();
+    navigate('/login');
+  }
+
   return (
     <div className="app-shell">
       <header className="app-header">
@@ -23,6 +32,14 @@ export function AppLayout() {
           ))}
         </nav>
         <BackendStatus />
+        {user && (
+          <div className="app-header__user">
+            <span className="app-header__email">{user.email}</span>
+            <button type="button" onClick={handleLogout}>
+              Log out
+            </button>
+          </div>
+        )}
       </header>
       <main className="app-main">
         <Outlet />

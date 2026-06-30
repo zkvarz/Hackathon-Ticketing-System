@@ -74,6 +74,24 @@ body {
   color: var(--muted);
 }
 
+.app-header__user {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.875rem;
+}
+
+.app-header__email {
+  color: var(--muted);
+}
+
+.login__not-verified {
+  margin-top: 1rem;
+  padding: 0.75rem;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+}
+
 .backend-status--up strong {
   color: #15803d;
 }

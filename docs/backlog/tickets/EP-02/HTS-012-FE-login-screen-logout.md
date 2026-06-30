@@ -6,7 +6,7 @@
 | **Type** | FE |
 | **Epic** | EP-02 Authentication |
 | **Story** | ST-04 Login/logout |
-| **Status** | TODO |
+| **Status** | DONE |
 | **Depends on** | HTS-003, HTS-011 |
 | **Blocks** | HTS-014 |
 | **Traceability** | FR-S4, FR-A3; NFR-3; architecture.md §11; wireframes image1, image2 |
@@ -27,10 +27,10 @@ API and the app's auth context.
 - Logout calls the API and clears client auth state.
 
 ## Acceptance criteria
-- [ ] AC-1 — Correct credentials log in and route to the board.
-- [ ] AC-2 — Wrong credentials show a generic error (no field-specific leak).
-- [ ] AC-3 — `EMAIL_NOT_VERIFIED` response surfaces a resend affordance.
-- [ ] AC-4 — The user menu shows the logged-in email and a Log out action that logs out and returns to login.
+- [x] AC-1 — Correct credentials log in and route to the board.
+- [x] AC-2 — Wrong credentials show a generic error (no field-specific leak).
+- [x] AC-3 — `EMAIL_NOT_VERIFIED` response surfaces a resend affordance.
+- [x] AC-4 — The user menu shows the logged-in email and a Log out action that logs out and returns to login.
 
 ## Test plan
 **Component (Vitest + RTL):**
@@ -49,7 +49,23 @@ npm run dev   # /login
 ```
 
 ## Definition of Done
-- [ ] AC-1..AC-4 met
-- [ ] Component + MSW tests pass (positive/negative/boundary)
-- [ ] Logout returns to login and clears auth state
-- [ ] INDEX.md status updated
+- [x] AC-1..AC-4 met
+- [x] Component + MSW tests pass (positive/negative/boundary)
+- [x] Logout returns to login and clears auth state
+- [x] INDEX.md status updated
+
+## Implementation notes
+- Introduced `auth/AuthContext` (`AuthProvider` + `useAuth`): bootstraps the current user from
+  `GET /api/auth/me` via TanStack Query (refresh-survives, NFR-2), exposes `login`/`logout`
+  that update the cached `['auth','me']`. `router.tsx` now has a pathless root wrapping all
+  routes in `AuthProvider` (so tests mounting `routes` get it too). HTS-014 adds RequireAuth +
+  global 401 handling on top.
+- `features/auth/LoginPage`: validates non-empty fields, logs in via the context, routes to
+  `/board`; 401 → generic "Invalid email or password"; 403 `EMAIL_NOT_VERIFIED` → embeds the
+  shared `ResendVerification` (completing HTS-010's login-screen placement). `api/auth.ts`
+  adds `login`/`logout`/`getCurrentUser`.
+- `AppLayout` header shows the signed-in email + a Log out button (calls `logout()` →
+  `/login`). Default MSW `GET /api/auth/me` → 401 added so the root provider is satisfied.
+- Tests (5): login→board (+ header email), empty-fields blocked, 401 generic error, 403
+  resend affordance, header logout→login. Use classic `MemoryRouter`/`Routes` to avoid a
+  jsdom+MSW AbortSignal clash in the data router on programmatic navigation (browser is fine).

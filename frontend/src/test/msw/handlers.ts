@@ -6,4 +6,6 @@ import { http, HttpResponse } from 'msw';
 export const handlers = [
   // Happy-path backend health (architecture.md §8).
   http.get('/api/health', () => HttpResponse.json({ status: 'UP' })),
+  // Default to anonymous; tests that need a signed-in user override this with server.use().
+  http.get('/api/auth/me', () => new HttpResponse(null, { status: 401 })),
 ];
