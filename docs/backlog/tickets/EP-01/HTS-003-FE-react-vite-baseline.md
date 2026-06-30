@@ -6,7 +6,7 @@
 | **Type** | FE |
 | **Epic** | EP-01 Foundation |
 | **Story** | ST-03 Frontend baseline |
-| **Status** | TODO |
+| **Status** | DONE |
 | **Depends on** | HTS-001 |
 | **Blocks** | HTS-006, HTS-008, HTS-012, HTS-032, HTS-004 |
 | **Traceability** | architecture.md §3, §11, §12; NFR-3, NFR-4 |
@@ -35,10 +35,10 @@ health endpoint — the foundation all frontend features build on.
 - Shared state components used everywhere later (loading/empty/error).
 
 ## Acceptance criteria
-- [ ] AC-1 — `npm run build` produces a static bundle; `npm run dev` serves the shell locally.
-- [ ] AC-2 — SPA loads in the browser via the `frontend` container (nginx) at `http://localhost:8081`.
-- [ ] AC-3 — The shell successfully calls `GET /api/health` through the nginx `/api` proxy.
-- [ ] AC-4 — Direct navigation to a client route (e.g. `/board`) is served by SPA fallback (no 404).
+- [x] AC-1 — `npm run build` produces a static bundle; `npm run dev` serves the shell locally.
+- [x] AC-2 — SPA loads in the browser via the `frontend` container (nginx) at `http://localhost:8081`.
+- [x] AC-3 — The shell successfully calls `GET /api/health` through the nginx `/api` proxy.
+- [x] AC-4 — Direct navigation to a client route (e.g. `/board`) is served by SPA fallback (no 404).
 
 ## Test plan
 **Component (Vitest + React Testing Library):**
@@ -60,8 +60,25 @@ docker compose up --build frontend backend   # SPA at :8081 reaches backend heal
 ```
 
 ## Definition of Done
-- [ ] AC-1..AC-4 met
-- [ ] Component tests (positive/negative/boundary) pass
-- [ ] MSW API-contract tests pass
-- [ ] Container builds; SPA served by nginx reaches backend through `/api` proxy
-- [ ] INDEX.md status updated
+- [x] AC-1..AC-4 met
+- [x] Component tests (positive/negative/boundary) pass
+- [x] MSW API-contract tests pass
+- [x] Container builds; SPA served by nginx reaches backend through `/api` proxy
+- [x] INDEX.md status updated
+
+## Implementation notes
+- Vite + React 18 + strict TS; `tsc -b` is part of `npm run build`.
+- API client (`src/api/client.ts`): same-origin `/api`, `credentials: include`, CSRF header
+  (`X-XSRF-TOKEN` from the `XSRF-TOKEN` cookie) on state-changing verbs, typed `ApiError`
+  parsing the standardized error model (architecture.md §8), tolerant of 204/empty/malformed
+  bodies. Paths resolve against `location.origin` so Node's fetch works under jsdom in tests.
+- Router (`src/router.tsx`): `/login`, `/signup`, `/verify` standalone; `/board`, `/teams`,
+  `/epics`, `/tickets/:id` inside `AppLayout`; `*` → not-found; `/` → `/board`.
+- NFR-3 primitives: `Loading`, `Empty`, `ErrorState`; `BackendStatus` widget hits
+  `GET /api/health` via TanStack Query.
+- Tests (Vitest + RTL + MSW, 12 passing): state components; API client negative (4xx/5xx parsed
+  model) + boundary (204 / malformed JSON); shell routing + SPA-fallback; health success/failure.
+- Multi-stage Dockerfile (node build → nginx). Verified with podman: SPA served at :8081,
+  `/board` falls back to the shell, `/api/health` proxied to the backend returns `{"status":"UP"}`.
+- Note: nginx resolves the `backend` upstream at boot, so the backend container must exist on
+  the network before the frontend starts. Compose already enforces this via `depends_on: backend`.
