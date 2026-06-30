@@ -3,12 +3,12 @@
 
 import { createBrowserRouter, Navigate } from 'react-router-dom';
 import { AppLayout } from './layout/AppLayout';
+import { SignupPage } from './features/auth/SignupPage';
 import {
   BoardPage,
   EpicsPage,
   LoginPage,
   NotFoundPage,
-  SignupPage,
   TeamsPage,
   TicketDetailsPage,
   VerifyPage,

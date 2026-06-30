@@ -20,3 +20,11 @@ export interface ApiErrorBody {
 export interface HealthStatus {
   status: string;
 }
+
+/** Public view of a user returned by signup (mirrors backend UserResponse). */
+export interface UserResponse {
+  id: string;
+  email: string;
+  emailVerified: boolean;
+  createdAt: string;
+}

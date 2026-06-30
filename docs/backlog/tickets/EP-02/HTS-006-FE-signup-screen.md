@@ -6,7 +6,7 @@
 | **Type** | FE |
 | **Epic** | EP-02 Authentication |
 | **Story** | ST-01 Sign up |
-| **Status** | TODO |
+| **Status** | DONE |
 | **Depends on** | HTS-003, HTS-005 |
 | **Blocks** | — |
 | **Traceability** | FR-S1; FR-A1, FR-A4; NFR-3; architecture.md §11; wireframe image2 |
@@ -28,10 +28,10 @@ validation, calling the signup API and showing success and error states.
 - On success, show "verification email sent — check your inbox" (no auto-login, per FR-A9 flow).
 
 ## Acceptance criteria
-- [ ] AC-1 — Valid input submits and shows the success/check-email state.
-- [ ] AC-2 — Mismatched confirm password blocks submit with an inline error.
-- [ ] AC-3 — Password <8 chars blocks submit with an inline error.
-- [ ] AC-4 — Server 409 (email taken) and 400 (validation) render as readable errors, not a crash.
+- [x] AC-1 — Valid input submits and shows the success/check-email state.
+- [x] AC-2 — Mismatched confirm password blocks submit with an inline error.
+- [x] AC-3 — Password <8 chars blocks submit with an inline error.
+- [x] AC-4 — Server 409 (email taken) and 400 (validation) render as readable errors, not a crash.
 
 ## Test plan
 **Component (Vitest + RTL):**
@@ -52,8 +52,21 @@ npm run dev   # visit /signup
 ```
 
 ## Definition of Done
-- [ ] AC-1..AC-4 met
-- [ ] Component tests (positive/negative/boundary) pass
-- [ ] MSW tests cover 201/409/400/500
-- [ ] Loading/error/success states present (NFR-3)
-- [ ] INDEX.md status updated
+- [x] AC-1..AC-4 met
+- [x] Component tests (positive/negative/boundary) pass
+- [x] MSW tests cover 201/409/400/500
+- [x] Loading/error/success states present (NFR-3)
+- [x] INDEX.md status updated
+
+## Implementation notes
+- `features/auth/SignupPage.tsx` wired into the router (replaces the `/signup` placeholder).
+- Client validation (UX only; server authoritative): email format, password 8..128, confirm
+  match. Submit sends a trimmed email; server normalizes further.
+- Server-error mapping: 409 `EMAIL_TAKEN` → email field error; 400 `VALIDATION_FAILED`
+  field errors → mapped onto matching inputs; 500/other → generic form error, form stays
+  usable (submit re-enabled); success → check-email state with a link back to login (no
+  auto-login, FR-A9).
+- `api/auth.ts` adds typed `signup()` (and `verifyEmail()` ahead of HTS-008).
+- Tests (7): positive (trimmed payload sent once → success), negative (confirm mismatch /
+  invalid email block submit, API not called), boundary (7 vs 8 char password), MSW
+  201/409/400/500.
