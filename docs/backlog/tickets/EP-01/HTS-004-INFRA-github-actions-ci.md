@@ -6,7 +6,7 @@
 | **Type** | INFRA |
 | **Epic** | EP-01 Foundation |
 | **Story** | ST-04 CI |
-| **Status** | IN-REVIEW |
+| **Status** | DONE |
 | **Depends on** | HTS-002, HTS-003 |
 | **Blocks** | — |
 | **Traceability** | architecture.md §12; NFR-6 |
@@ -35,9 +35,9 @@ regressions are caught early and the "runs on any machine" promise is continuous
   Testcontainers. Live confirmation on first push.)*
 - [x] AC-3 — Frontend job builds and runs Vitest tests and passes. *(Mirrored locally:
   `npm ci && npm run build && npm test` → 23 tests green.)*
-- [ ] AC-4 — A deliberately failing test fails the pipeline (gate works). *(Structurally
-  guaranteed — a failing test returns non-zero and fails the job — but a live red/green
-  demonstration requires pushing to GitHub; pending first push.)*
+- [x] AC-4 — A deliberately failing test fails the pipeline (gate works). *(Demonstrated live:
+  the first push went **red** on `./mvnw: Permission denied` (exit 126), proving the gate
+  blocks; after marking `backend/mvnw` executable (mode 100755) the re-run went **green**.)*
 
 ## Test plan
 Validation is the pipeline itself (no unit tests for YAML):
@@ -53,9 +53,9 @@ cd ../frontend && npm ci && npm run build && npm test -- --run
 ```
 
 ## Definition of Done
-- [x] AC-1..AC-3 met and mirrored locally; AC-4 structurally satisfied (push-confirmed)
-- [ ] Both jobs green on a clean push; red on an injected failure (then reverted) — **pending
-  first push to GitHub** (cannot be exercised locally)
+- [x] AC-1..AC-4 met (verified live on GitHub Actions)
+- [x] Both jobs green on a clean push; first push went red on the `mvnw` permission bit, fixed
+  (mode 100755) → re-run green (the red→green gate demonstration)
 - [x] Caching configured (Maven via setup-java `cache: maven`; npm via setup-node `cache: npm`)
 - [x] README badge added
 - [x] INDEX.md status updated

@@ -54,3 +54,15 @@ cd backend && ./mvnw test -Dtest='*ErrorHandling*'
 - [ ] `code` catalog documented (and referenced by FE HTS-032)
 - [ ] No sensitive data in error bodies
 - [ ] INDEX.md status updated
+
+## Carry-over notes (from HTS-005/007 implementation)
+- A **focused** `common/ApiExceptionHandler` already exists, added with the first endpoints
+  that needed it. It currently maps only: `MethodArgumentNotValidException` → 400
+  `VALIDATION_FAILED` (with `fieldErrors`), `EmailAlreadyTakenException` → 409 `EMAIL_TAKEN`,
+  `TokenInvalidException` → 400 `TOKEN_INVALID`. **This ticket should absorb/replace it** with
+  the full global advice rather than adding a second `@RestControllerAdvice`.
+- **Gap to close (AC-4):** there is currently *no* catch-all handler, so unexpected exceptions
+  fall through to Spring's default error response (not our model) and a 404 on an unknown path
+  is the Whitelabel/Boot default. Add the 404/401/403/500 mappings here.
+- Keep the existing `code` values stable (`VALIDATION_FAILED`, `EMAIL_TAKEN`, `TOKEN_INVALID`)
+  — the FE (HTS-006/008) already branches on them.

@@ -53,3 +53,12 @@ git grep -nE '(password|secret|token)\s*=\s*["'"'"']' -- ':!*test*'   # expect n
 - [ ] Tests pass (positive/negative/boundary)
 - [ ] Secret scan clean (DoD-8)
 - [ ] INDEX.md status updated
+
+## Carry-over notes (repo hygiene, from EP-01/EP-02 implementation)
+- **Add a `.gitattributes`** (`* text=auto eol=lf` + binary rules). The repo is developed on
+  Windows: every commit emits LF→CRLF warnings, and `backend/mvnw` had to be re-marked
+  executable (mode 100755) after the first CI run failed with `Permission denied` (exit 126).
+  A `.gitattributes` normalizes EOLs and, with `backend/mvnw text eol=lf`, prevents the shell
+  wrapper from being checked out with CRLF. (Small, isolated change — could also be its own
+  INFRA ticket if preferred.)
+- **Verify the Maven wrapper keeps its exec bit** as part of the secret/hygiene scan.
