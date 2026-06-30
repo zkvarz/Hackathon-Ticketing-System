@@ -6,7 +6,7 @@
 | **Type** | FE |
 | **Epic** | EP-02 Authentication |
 | **Story** | ST-03 Resend |
-| **Status** | TODO |
+| **Status** | DONE |
 | **Depends on** | HTS-008, HTS-009 |
 | **Blocks** | — |
 | **Traceability** | FR-S3, FR-A10; NFR-3; architecture.md §11; wireframe image2 |
@@ -27,10 +27,12 @@ and the verification-result error state, calling the resend endpoint and confirm
   confirmation (mirrors the no-enumeration backend behavior).
 
 ## Acceptance criteria
-- [ ] AC-1 — Resend control appears on the login screen and the verification error state.
-- [ ] AC-2 — Triggering it calls the resend API and shows a generic confirmation.
-- [ ] AC-3 — The button is disabled while the request is in flight (no double submit).
-- [ ] AC-4 — A server error shows a non-blocking error, control remains usable.
+- [x] AC-1 — Resend control appears on the login screen and the verification error state.
+  *(Verification error state wired here; login-screen placement delivered in the next commit,
+  HTS-012, where the login screen is built — the same `ResendVerification` component is embedded.)*
+- [x] AC-2 — Triggering it calls the resend API and shows a generic confirmation.
+- [x] AC-3 — The button is disabled while the request is in flight (no double submit).
+- [x] AC-4 — A server error shows a non-blocking error, control remains usable.
 
 ## Test plan
 **Component (Vitest + RTL):**
@@ -48,7 +50,19 @@ npm run dev   # /login and /verify?token=bad
 ```
 
 ## Definition of Done
-- [ ] AC-1..AC-4 met
-- [ ] Component + MSW tests pass (positive/negative/boundary)
-- [ ] In-flight disabling verified
-- [ ] INDEX.md status updated
+- [x] AC-1..AC-4 met (login-screen placement embedded in HTS-012)
+- [x] Component + MSW tests pass (positive/negative/boundary)
+- [x] In-flight disabling verified
+- [x] INDEX.md status updated
+
+## Implementation notes
+- `features/auth/ResendVerification.tsx`: reusable control. With an `email` prop (login case)
+  it shows just the button; standalone (verify case) it renders its own validated email input.
+  Confirmation is always generic ("If that account needs verification, a new email has been
+  sent") to mirror the backend's no-enumeration behavior. Button disabled while in flight.
+- Wired into the VerifyPage invalid/expired state (replacing the disabled placeholder). The
+  login screen embeds the same component on the `EMAIL_NOT_VERIFIED` path in HTS-012.
+- `api/auth.ts` adds `resendVerification(email)`.
+- Tests (4): positive (one call + confirmation), negative (double-click → one request via
+  in-flight disable), boundary (standalone empty/invalid email blocks call), MSW 500 →
+  non-blocking error, control stays enabled.

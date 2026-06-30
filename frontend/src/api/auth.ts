@@ -17,3 +17,8 @@ export function signup(payload: SignupPayload) {
 export function verifyEmail(token: string) {
   return apiClient.get<void>(`/auth/verify?token=${encodeURIComponent(token)}`);
 }
+
+/** POST /api/auth/resend — request a fresh verification email (HTS-010). */
+export function resendVerification(email: string) {
+  return apiClient.post<void>('/auth/resend', { email });
+}

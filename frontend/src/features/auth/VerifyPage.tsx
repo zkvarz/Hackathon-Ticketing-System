@@ -7,6 +7,7 @@ import { Link } from 'react-router-dom';
 import { useSearchParams } from 'react-router-dom';
 import { verifyEmail } from '../../api/auth';
 import { Loading } from '../../components/Loading';
+import { ResendVerification } from './ResendVerification';
 
 export function VerifyPage() {
   const [params] = useSearchParams();
@@ -27,10 +28,8 @@ export function VerifyPage() {
         <p role="alert">
           This verification link is invalid or has expired. Request a new one and try again.
         </p>
-        {/* Resend is wired in HTS-010; the affordance is present now. */}
-        <button type="button" disabled>
-          Resend verification email
-        </button>
+        {/* Resend control (HTS-010): standalone here, so it collects the email itself. */}
+        <ResendVerification />
         <p>
           <Link to="/login">Back to log in</Link>
         </p>
