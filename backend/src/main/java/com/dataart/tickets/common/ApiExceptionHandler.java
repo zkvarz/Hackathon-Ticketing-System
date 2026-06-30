@@ -3,6 +3,8 @@ package com.dataart.tickets.common;
 import com.dataart.tickets.auth.EmailAlreadyTakenException;
 import com.dataart.tickets.auth.TokenInvalidException;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.authentication.DisabledException;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -40,6 +42,21 @@ public class ApiExceptionHandler {
     @ExceptionHandler(TokenInvalidException.class)
     public ResponseEntity<ApiError> handleTokenInvalid(TokenInvalidException ex) {
         return build(HttpStatus.BAD_REQUEST, "TOKEN_INVALID", ex.getMessage(), List.of());
+    }
+
+    // Login: an unverified account is "disabled" (AppUserDetailsService) → 403 so the FE can
+    // offer a resend, distinct from bad credentials (FR-A7).
+    @ExceptionHandler(DisabledException.class)
+    public ResponseEntity<ApiError> handleDisabled(DisabledException ex) {
+        return build(HttpStatus.FORBIDDEN, "EMAIL_NOT_VERIFIED",
+                "This account's email address is not verified.", List.of());
+    }
+
+    // Wrong password or unknown email → one generic 401 (no field-level distinction).
+    @ExceptionHandler(BadCredentialsException.class)
+    public ResponseEntity<ApiError> handleBadCredentials(BadCredentialsException ex) {
+        return build(HttpStatus.UNAUTHORIZED, "BAD_CREDENTIALS",
+                "Invalid email or password.", List.of());
     }
 
     private ResponseEntity<ApiError> build(HttpStatus status, String code, String message,

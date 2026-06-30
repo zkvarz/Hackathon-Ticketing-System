@@ -1,12 +1,22 @@
 package com.dataart.tickets.auth;
 
+import com.dataart.tickets.auth.dto.LoginRequest;
 import com.dataart.tickets.auth.dto.ResendRequest;
 import com.dataart.tickets.auth.dto.SignupRequest;
 import com.dataart.tickets.auth.dto.UserResponse;
 import com.dataart.tickets.auth.dto.VerificationResult;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContext;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.web.context.SecurityContextRepository;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -16,9 +26,9 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
 /**
- * Public auth endpoints (architecture.md §8/§9). HTS-005 adds sign-up; verification/login/
- * logout endpoints are added by HTS-007/HTS-011. These stay unauthenticated when security
- * lands in HTS-013 (FR-A12).
+ * Auth endpoints (architecture.md §8/§9). Sign-up/verify/resend are public; login establishes a
+ * server-side session, logout invalidates it, and {@code /me} reports the current user. The
+ * public allowlist + CSRF are enforced in HTS-013 (FR-A12).
  */
 @RestController
 @RequestMapping("/api/auth")
@@ -26,10 +36,20 @@ public class AuthController {
 
     private final AuthService authService;
     private final EmailVerificationService emailVerification;
+    private final AuthenticationManager authenticationManager;
+    private final SecurityContextRepository securityContextRepository;
+    private final UserRepository users;
 
-    public AuthController(AuthService authService, EmailVerificationService emailVerification) {
+    public AuthController(AuthService authService,
+                          EmailVerificationService emailVerification,
+                          AuthenticationManager authenticationManager,
+                          SecurityContextRepository securityContextRepository,
+                          UserRepository users) {
         this.authService = authService;
         this.emailVerification = emailVerification;
+        this.authenticationManager = authenticationManager;
+        this.securityContextRepository = securityContextRepository;
+        this.users = users;
     }
 
     @PostMapping("/signup")
@@ -58,5 +78,44 @@ public class AuthController {
     public VerificationResult resend(@Valid @RequestBody ResendRequest request) {
         emailVerification.resend(request.email());
         return new VerificationResult("sent", request.email());
+    }
+
+    /**
+     * Authenticate and start a session (FR-A3/A7). Bad credentials → 401 BAD_CREDENTIALS;
+     * unverified account → 403 EMAIL_NOT_VERIFIED (both mapped in the exception handler).
+     */
+    @PostMapping("/login")
+    public UserResponse login(@Valid @RequestBody LoginRequest request,
+                              HttpServletRequest httpRequest, HttpServletResponse httpResponse) {
+        String email = EmailNormalizer.normalize(request.email());
+
+        Authentication authentication = authenticationManager.authenticate(
+                new UsernamePasswordAuthenticationToken(email, request.password()));
+
+        // Persist the authenticated context into the session so subsequent requests are recognized.
+        SecurityContext context = SecurityContextHolder.createEmptyContext();
+        context.setAuthentication(authentication);
+        SecurityContextHolder.setContext(context);
+        securityContextRepository.saveContext(context, httpRequest, httpResponse);
+
+        return UserResponse.from(users.findByEmail(email).orElseThrow());
+    }
+
+    /** Current authenticated user, for the FE auth context. 401 when unauthenticated. */
+    @GetMapping("/me")
+    public UserResponse me(Authentication authentication) {
+        String email = EmailNormalizer.normalize(authentication.getName());
+        return UserResponse.from(users.findByEmail(email).orElseThrow());
+    }
+
+    /** Invalidate the server session and clear the security context (FR-A3). */
+    @PostMapping("/logout")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void logout(HttpServletRequest request) {
+        HttpSession session = request.getSession(false);
+        if (session != null) {
+            session.invalidate();
+        }
+        SecurityContextHolder.clearContext();
     }
 }

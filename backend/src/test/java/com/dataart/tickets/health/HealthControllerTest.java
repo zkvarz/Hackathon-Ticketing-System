@@ -2,6 +2,7 @@ package com.dataart.tickets.health;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.test.web.servlet.MockMvc;
 
@@ -12,7 +13,10 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 /**
  * Unit slice test of the health endpoint — no database, no full context.
  */
+// Security filters disabled for this slice — the health endpoint's public access is verified
+// end-to-end in BaselineIntegrationTest; here we only test the controller behavior.
 @WebMvcTest(HealthController.class)
+@AutoConfigureMockMvc(addFilters = false)
 class HealthControllerTest {
 
     @Autowired

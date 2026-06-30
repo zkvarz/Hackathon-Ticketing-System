@@ -25,6 +25,15 @@ spring:
 
 server:
   port: 8080
+  servlet:
+    session:
+      # Idle/sliding timeout (AMB-7 / A-3). Absolute 8h cap is a follow-up (needs a custom
+      # filter; tracked for HTS-033 hardening) — the servlet container only models idle timeout.
+      timeout: ${APP_SESSION_TIMEOUT_IDLE:30m}
+      cookie:
+        http-only: true
+        same-site: lax
+        # secure: true is set via a non-local profile in HTS-033 (requires HTTPS).
 
 # Application-specific config (consumed by later tickets).
 app:
