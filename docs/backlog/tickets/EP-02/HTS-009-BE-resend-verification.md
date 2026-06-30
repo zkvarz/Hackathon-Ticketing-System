@@ -6,7 +6,7 @@
 | **Type** | BE |
 | **Epic** | EP-02 Authentication |
 | **Story** | ST-03 Resend |
-| **Status** | TODO |
+| **Status** | DONE |
 | **Depends on** | HTS-007 |
 | **Blocks** | HTS-010 |
 | **Traceability** | FR-A10, FR-A11; architecture.md §9, §10 |
@@ -27,10 +27,10 @@ any earlier unused tokens for that user.
   already verified, to avoid account enumeration (defense-in-depth; note in architecture.md §9).
 
 ## Acceptance criteria
-- [ ] AC-1 — Resend for an unverified user issues a new token and invalidates prior unused ones.
-- [ ] AC-2 — Only the newest token can verify; older tokens now fail as invalid.
-- [ ] AC-3 — Resend for a non-existent/already-verified email returns the same generic success (no enumeration).
-- [ ] AC-4 — A new email is sent (captured by Mailpit).
+- [x] AC-1 — Resend for an unverified user issues a new token and invalidates prior unused ones.
+- [x] AC-2 — Only the newest token can verify; older tokens now fail as invalid.
+- [x] AC-3 — Resend for a non-existent/already-verified email returns the same generic success (no enumeration).
+- [x] AC-4 — A new email is sent (captured by Mailpit).
 
 ## Test plan
 **Unit (JUnit 5 + Mockito):**
@@ -49,8 +49,21 @@ curl -X POST localhost:8080/api/auth/resend -H 'Content-Type: application/json' 
 ```
 
 ## Definition of Done
-- [ ] AC-1..AC-4 met
-- [ ] Unit tests (positive/negative/boundary) pass
-- [ ] Testcontainers integration (token rotation + Mailpit) passes
-- [ ] No account-enumeration signal in responses
-- [ ] INDEX.md status updated
+- [x] AC-1..AC-4 met
+- [x] Unit tests (positive/negative/boundary) pass
+- [x] Testcontainers integration (token rotation + Mailpit) passes
+- [x] No account-enumeration signal in responses
+- [x] INDEX.md status updated
+
+## Implementation notes
+- `POST /api/auth/resend` (public) → always 202 with a generic body. `EmailVerificationService.resend`
+  normalizes the email, and only if a **matching unverified** user exists: marks their unused
+  tokens consumed (invalidation, FR-A11) then `issueAndSend` a fresh one. Unknown/verified →
+  silently no-op (no enumeration).
+- Reuses `consumed_at` as the "no longer usable" marker, so the existing verify check
+  (`isConsumed() || isExpiredAt`) rejects rotated-out tokens with no new column.
+- `EmailVerificationTokenRepository.findByUserAndConsumedAtIsNull`; service gained a
+  `UserRepository` dependency (existing `EmailVerificationServiceTest` updated accordingly).
+- Tests (6): `ResendServiceTest` (Mockito: rotate+invalidate, zero-prior still issues one,
+  verified user no-op, unknown email no-op), `ResendIntegrationTest` (Postgres+Mailpit: signup
+  then resend → 2 emails, old token 400 / new token 200; unknown email → generic 202).

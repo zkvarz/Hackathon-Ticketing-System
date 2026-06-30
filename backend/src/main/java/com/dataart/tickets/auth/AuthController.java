@@ -1,5 +1,6 @@
 package com.dataart.tickets.auth;
 
+import com.dataart.tickets.auth.dto.ResendRequest;
 import com.dataart.tickets.auth.dto.SignupRequest;
 import com.dataart.tickets.auth.dto.UserResponse;
 import com.dataart.tickets.auth.dto.VerificationResult;
@@ -11,6 +12,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
 /**
@@ -45,5 +47,16 @@ public class AuthController {
     public VerificationResult verify(@RequestParam("token") String token) {
         User user = emailVerification.verify(token);
         return new VerificationResult("verified", user.getEmail());
+    }
+
+    /**
+     * Resend a verification email (FR-A10/A11). Public. Always returns 202 with a generic body
+     * regardless of whether the account exists or is already verified (no enumeration).
+     */
+    @PostMapping("/resend")
+    @ResponseStatus(HttpStatus.ACCEPTED)
+    public VerificationResult resend(@Valid @RequestBody ResendRequest request) {
+        emailVerification.resend(request.email());
+        return new VerificationResult("sent", request.email());
     }
 }

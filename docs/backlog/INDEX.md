@@ -48,7 +48,7 @@ come from [`../requirements-analysis.md`](../requirements-analysis.md).
 | HTS-006 | FE | Sign-up screen: form, validation, success/error states | ST-01 | HTS-003,HTS-005 | FR-S1; NFR-3 | DONE |
 | HTS-007 | BE | Email verification: token issue + SMTP send + verify endpoint (24h, single-use) | ST-02 | HTS-005 | FR-A6,A7,A8,A9; DoD-1 | DONE |
 | HTS-008 | FE | Email verification result screen (success / expired-invalid) | ST-02 | HTS-003,HTS-007 | FR-S2 | DONE |
-| HTS-009 | BE | Resend verification endpoint (invalidate prior unused tokens) | ST-03 | HTS-007 | FR-A10,A11 | TODO |
+| HTS-009 | BE | Resend verification endpoint (invalidate prior unused tokens) | ST-03 | HTS-007 | FR-A10,A11 | DONE |
 | HTS-010 | FE | Resend verification action (login + verification screens) | ST-03 | HTS-008,HTS-009 | FR-S3 | TODO |
 | HTS-011 | BE | Login/logout: session cookie, reject unverified, lifetime config | ST-04 | HTS-007 | FR-A3,A7; AMB-7; DoD-1 | TODO |
 | HTS-012 | FE | Login screen + logout control (user menu) | ST-04 | HTS-003,HTS-011 | FR-S4 | TODO |

@@ -29,6 +29,7 @@ public class EmailVerificationService {
     private static final int TOKEN_BYTES = 32;
 
     private final EmailVerificationTokenRepository tokens;
+    private final UserRepository users;
     private final JavaMailSender mailSender;
     private final Clock clock;
     private final Duration tokenTtl;
@@ -37,12 +38,14 @@ public class EmailVerificationService {
 
     public EmailVerificationService(
             EmailVerificationTokenRepository tokens,
+            UserRepository users,
             JavaMailSender mailSender,
             Clock clock,
             @Value("${app.verification.token-ttl}") Duration tokenTtl,
             @Value("${app.base-url}") String baseUrl,
             @Value("${app.mail.from}") String mailFrom) {
         this.tokens = tokens;
+        this.users = users;
         this.mailSender = mailSender;
         this.clock = clock;
         this.tokenTtl = tokenTtl;
@@ -69,6 +72,27 @@ public class EmailVerificationService {
                     user.getEmail(), e);
         }
         return token;
+    }
+
+    /**
+     * Resend a verification email (FR-A10/A11). If a matching user exists and is still
+     * unverified, their outstanding unused tokens are invalidated and a fresh one is issued
+     * and sent. Always returns silently regardless of whether the email exists or is already
+     * verified, so the endpoint cannot be used to enumerate accounts (architecture.md §9).
+     */
+    @Transactional
+    public void resend(String rawEmail) {
+        String email = EmailNormalizer.normalize(rawEmail);
+        users.findByEmail(email)
+                .filter(user -> !user.isEmailVerified())
+                .ifPresent(user -> {
+                    // Invalidate prior unused tokens so only the newest can verify (FR-A11).
+                    Instant now = clock.instant();
+                    for (EmailVerificationToken prior : tokens.findByUserAndConsumedAtIsNull(user)) {
+                        prior.setConsumedAt(now);
+                    }
+                    issueAndSend(user);
+                });
     }
 
     /**

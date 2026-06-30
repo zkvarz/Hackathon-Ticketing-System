@@ -36,12 +36,16 @@ class EmailVerificationServiceTest {
     private EmailVerificationTokenRepository tokens;
 
     @Mock
+    private UserRepository users;
+
+    @Mock
     private JavaMailSender mailSender;
 
     private EmailVerificationService serviceAt(Instant clockInstant) {
         Clock clock = Clock.fixed(clockInstant, ZoneOffset.UTC);
         return new EmailVerificationService(
-                tokens, mailSender, clock, TTL, "http://localhost:8081", "no-reply@tickets.local");
+                tokens, users, mailSender, clock, TTL,
+                "http://localhost:8081", "no-reply@tickets.local");
     }
 
     private EmailVerificationToken tokenExpiringAt(Instant expiresAt) {
