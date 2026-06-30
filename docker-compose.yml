@@ -1,0 +1,85 @@
+# Hackathon Ticketing System — full stack orchestration.
+# Bring up everything:        docker compose up --build
+# Reset to an empty database:  docker compose down -v && docker compose up --build
+# App: http://localhost:8081   Backend: http://localhost:8080   Mailpit UI: http://localhost:8025
+#
+# Config comes from .env (copy from .env.example). See docs/architecture.md §4.
+
+services:
+  db:
+    image: postgres:16
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    ports:
+      - "5432:5432"
+    volumes:
+      - db-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    networks:
+      - app
+
+  mailpit:
+    image: axllent/mailpit:latest
+    environment:
+      MP_SMTP_AUTH_ACCEPT_ANY: "true"
+      MP_SMTP_AUTH_ALLOW_INSECURE: "true"
+    ports:
+      - "8025:8025"   # web UI / HTTP API
+      - "1025:1025"   # SMTP
+    healthcheck:
+      test: ["CMD", "wget", "-q", "--spider", "http://localhost:8025/readyz"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+    networks:
+      - app
+
+  # Real image is added in HTS-002 (Spring Boot baseline). The build context and
+  # placeholder Dockerfile exist now so `docker compose config` validates the full stack.
+  backend:
+    build: ./backend
+    depends_on:
+      db:
+        condition: service_healthy
+      mailpit:
+        condition: service_started
+    environment:
+      SPRING_DATASOURCE_URL: ${SPRING_DATASOURCE_URL}
+      SPRING_DATASOURCE_USERNAME: ${SPRING_DATASOURCE_USERNAME}
+      SPRING_DATASOURCE_PASSWORD: ${SPRING_DATASOURCE_PASSWORD}
+      APP_SESSION_TIMEOUT_IDLE: ${APP_SESSION_TIMEOUT_IDLE}
+      APP_SESSION_TIMEOUT_ABSOLUTE: ${APP_SESSION_TIMEOUT_ABSOLUTE}
+      APP_VERIFICATION_TOKEN_TTL: ${APP_VERIFICATION_TOKEN_TTL}
+      APP_BASE_URL: ${APP_BASE_URL}
+      SMTP_HOST: ${SMTP_HOST}
+      SMTP_PORT: ${SMTP_PORT}
+      SMTP_USERNAME: ${SMTP_USERNAME}
+      SMTP_PASSWORD: ${SMTP_PASSWORD}
+      SMTP_FROM: ${SMTP_FROM}
+    ports:
+      - "8080:8080"
+    networks:
+      - app
+
+  # Real image is added in HTS-003 (React/Vite baseline, nginx-served).
+  frontend:
+    build: ./frontend
+    depends_on:
+      - backend
+    ports:
+      - "8081:80"
+    networks:
+      - app
+
+volumes:
+  db-data:
+
+networks:
+  app:
+    driver: bridge

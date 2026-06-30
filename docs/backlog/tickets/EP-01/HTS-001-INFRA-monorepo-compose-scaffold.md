@@ -6,7 +6,7 @@
 | **Type** | INFRA |
 | **Epic** | EP-01 Foundation |
 | **Story** | ST-01 Scaffold |
-| **Status** | TODO |
+| **Status** | DONE |
 | **Depends on** | — |
 | **Blocks** | HTS-002, HTS-003, HTS-004, HTS-034 |
 | **Traceability** | architecture.md §3, §4, §5; DoD-7, DoD-8, NFR-7 |
@@ -36,11 +36,11 @@ checkout with a single command.
   HTS-002/003.
 
 ## Acceptance criteria
-- [ ] AC-1 — `docker compose config` validates with no errors.
-- [ ] AC-2 — `docker compose up` starts `db` and `mailpit` healthy; Mailpit UI reachable at `http://localhost:8025`.
-- [ ] AC-3 — `.env.example` documents every key in architecture.md §5; `.env` is git-ignored.
-- [ ] AC-4 — No real secret is present in any committed file (DoD-8).
-- [ ] AC-5 — `.gitignore` excludes IntelliJ/JetBrains files (`.idea/`, `*.iml`); `git status` is clean of IDE files, and `git ls-files` lists none.
+- [x] AC-1 — `docker compose config` validates with no errors.
+- [x] AC-2 — `docker compose up` starts `db` and `mailpit` healthy; Mailpit UI reachable at `http://localhost:8025`.
+- [x] AC-3 — `.env.example` documents every key in architecture.md §5; `.env` is git-ignored.
+- [x] AC-4 — No real secret is present in any committed file (DoD-8).
+- [x] AC-5 — `.gitignore` excludes IntelliJ/JetBrains files (`.idea/`, `*.iml`); `git status` is clean of IDE files, and `git ls-files` lists none.
 
 ## Test plan
 This is infrastructure; verification is via compose, not unit tests.
@@ -56,7 +56,8 @@ docker compose up db mailpit        # expect both healthy; Mailpit UI at :8025
 ```
 
 ## Definition of Done
-- [ ] AC-1..AC-4 met
-- [ ] `docker compose config` clean; db + mailpit come up healthy
-- [ ] `.gitignore` excludes `.env`, build dirs, IDE files
-- [ ] INDEX.md status updated
+- [x] AC-1..AC-5 met
+- [x] `docker compose config` clean; db + mailpit come up healthy
+- [x] `.gitignore` excludes `.env`, build dirs, IDE files
+- [x] INDEX.md status updated
+- [x] All new/changed files committed; `git status` clean
