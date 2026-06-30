@@ -1,6 +1,7 @@
 package com.dataart.tickets.common;
 
 import com.dataart.tickets.auth.EmailAlreadyTakenException;
+import com.dataart.tickets.auth.TokenInvalidException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -34,6 +35,11 @@ public class ApiExceptionHandler {
     public ResponseEntity<ApiError> handleEmailTaken(EmailAlreadyTakenException ex) {
         return build(HttpStatus.CONFLICT, "EMAIL_TAKEN",
                 "An account with this email already exists.", List.of());
+    }
+
+    @ExceptionHandler(TokenInvalidException.class)
+    public ResponseEntity<ApiError> handleTokenInvalid(TokenInvalidException ex) {
+        return build(HttpStatus.BAD_REQUEST, "TOKEN_INVALID", ex.getMessage(), List.of());
     }
 
     private ResponseEntity<ApiError> build(HttpStatus status, String code, String message,

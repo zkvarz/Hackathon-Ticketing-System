@@ -14,10 +14,13 @@ public class AuthService {
 
     private final UserRepository users;
     private final PasswordEncoder passwordEncoder;
+    private final EmailVerificationService emailVerification;
 
-    public AuthService(UserRepository users, PasswordEncoder passwordEncoder) {
+    public AuthService(UserRepository users, PasswordEncoder passwordEncoder,
+                       EmailVerificationService emailVerification) {
         this.users = users;
         this.passwordEncoder = passwordEncoder;
+        this.emailVerification = emailVerification;
     }
 
     /**
@@ -35,11 +38,16 @@ public class AuthService {
         }
 
         String hash = passwordEncoder.encode(rawPassword);
+        User user;
         try {
-            return users.saveAndFlush(new User(email, hash));
+            user = users.saveAndFlush(new User(email, hash));
         } catch (org.springframework.dao.DataIntegrityViolationException e) {
             // Lost the race against a concurrent signup with the same email.
             throw new EmailAlreadyTakenException(email);
         }
+
+        // Issue + email the verification token (HTS-007). Email send is best-effort.
+        emailVerification.issueAndSend(user);
+        return user;
     }
 }

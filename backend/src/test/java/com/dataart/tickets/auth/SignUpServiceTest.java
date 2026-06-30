@@ -29,6 +29,9 @@ class SignUpServiceTest {
     @Mock
     private PasswordEncoder passwordEncoder;
 
+    @Mock
+    private EmailVerificationService emailVerification;
+
     @InjectMocks
     private AuthService authService;
 
@@ -47,6 +50,8 @@ class SignUpServiceTest {
         assertThat(saved.getValue().getPasswordHash()).isEqualTo("$argon2id$hashed");
         assertThat(saved.getValue().isEmailVerified()).isFalse();
         assertThat(result.getPasswordHash()).isNotEqualTo("password1");
+        // Signup triggers issuance + send of the verification token (HTS-007).
+        verify(emailVerification).issueAndSend(result);
     }
 
     // Boundary/behavior: email is normalized (trimmed + lower-cased) before lookup and storage.
@@ -74,5 +79,6 @@ class SignUpServiceTest {
 
         verify(users, never()).saveAndFlush(any());
         verify(passwordEncoder, never()).encode(anyString());
+        verify(emailVerification, never()).issueAndSend(any());
     }
 }

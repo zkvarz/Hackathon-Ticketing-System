@@ -6,7 +6,7 @@
 | **Type** | BE |
 | **Epic** | EP-02 Authentication |
 | **Story** | ST-02 Email verification |
-| **Status** | TODO |
+| **Status** | DONE |
 | **Depends on** | HTS-005 |
 | **Blocks** | HTS-008, HTS-009, HTS-011 |
 | **Traceability** | FR-A6, FR-A7, FR-A8, FR-A9; DoD-1; architecture.md §5, §9, §10 |
@@ -33,11 +33,11 @@ marks the user verified, and consumes the token.
 - Expired/consumed/unknown token → 400/410 with standard error model (`code=TOKEN_INVALID`).
 
 ## Acceptance criteria
-- [ ] AC-1 — Sign-up triggers a verification email captured by Mailpit, containing a valid link.
-- [ ] AC-2 — Verifying a fresh token marks the user verified and consumes the token.
-- [ ] AC-3 — A consumed token cannot be reused (single-use).
-- [ ] AC-4 — A token older than 24h is rejected as expired.
-- [ ] AC-5 — Verification does not create a session (no auto-login).
+- [x] AC-1 — Sign-up triggers a verification email captured by Mailpit, containing a valid link.
+- [x] AC-2 — Verifying a fresh token marks the user verified and consumes the token.
+- [x] AC-3 — A consumed token cannot be reused (single-use).
+- [x] AC-4 — A token older than 24h is rejected as expired.
+- [x] AC-5 — Verification does not create a session (no auto-login).
 
 ## Test plan
 **Unit (JUnit 5 + Mockito):**
@@ -58,8 +58,27 @@ docker compose up --build backend db mailpit
 ```
 
 ## Definition of Done
-- [ ] AC-1..AC-5 met
-- [ ] Unit tests (positive/negative/boundary incl. clock-based expiry) pass
-- [ ] Testcontainers integration (Postgres + Mailpit) passes end-to-end
-- [ ] SMTP target is env-configurable (Mailpit ↔ relay1.dataart.com, no code change)
-- [ ] INDEX.md status updated
+- [x] AC-1..AC-5 met
+- [x] Unit tests (positive/negative/boundary incl. clock-based expiry) pass
+- [x] Testcontainers integration (Postgres + Mailpit) passes end-to-end
+- [x] SMTP target is env-configurable (Mailpit ↔ relay1.dataart.com, no code change)
+- [x] INDEX.md status updated
+
+## Implementation notes
+- `EmailVerificationToken` entity + `V3__email_verification_tokens.sql` (FK cascade on user
+  delete, unique token, user index for FR-A11 resend).
+- `EmailVerificationService`: `issueAndSend` (32-byte URL-safe token, expiry = now+TTL from
+  injected `Clock`, link `${app.base-url}/verify?token=…`, `SimpleMailMessage` via
+  `JavaMailSender`); `verify` (unknown/consumed/expired → `TokenInvalidException`; else mark
+  user verified + set `consumed_at`). Expiry is exclusive (`now < expiresAt`).
+- Email send is **best-effort**: a `MailException` is caught/logged so signup still succeeds
+  (the token persists and the user can resend, FR-A10) instead of 500-ing if SMTP is down.
+- Wired into `AuthService.signup` (issue+send after persist). `GET /api/auth/verify?token=`
+  added to `AuthController`; no session created (FR-A9). `TOKEN_INVALID` (400) added to the
+  exception handler. Injectable UTC `Clock` bean (`config/TimeConfig`).
+- Tests (28 total green): `EmailVerificationServiceTest` (Mockito + fixed clock: issue+send,
+  mail-failure swallowed, verify success, unknown/consumed rejected, expiry boundary
+  before/at), `EmailVerificationIntegrationTest` (Postgres + **Mailpit** container: signup →
+  1 captured email → extract token → verify 200 + no Set-Cookie → user verified + token
+  consumed → expiry≈24h → reuse 400). Updated `SignUpServiceTest` for the new dependency.
+- SMTP target is env-only (`SMTP_HOST/PORT` → Mailpit or relay1.dataart.com); no code change.

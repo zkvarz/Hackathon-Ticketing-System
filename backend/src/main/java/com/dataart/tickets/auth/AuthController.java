@@ -2,12 +2,15 @@ package com.dataart.tickets.auth;
 
 import com.dataart.tickets.auth.dto.SignupRequest;
 import com.dataart.tickets.auth.dto.UserResponse;
+import com.dataart.tickets.auth.dto.VerificationResult;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 /**
@@ -20,14 +23,27 @@ import org.springframework.web.bind.annotation.RestController;
 public class AuthController {
 
     private final AuthService authService;
+    private final EmailVerificationService emailVerification;
 
-    public AuthController(AuthService authService) {
+    public AuthController(AuthService authService, EmailVerificationService emailVerification) {
         this.authService = authService;
+        this.emailVerification = emailVerification;
     }
 
     @PostMapping("/signup")
     public ResponseEntity<UserResponse> signup(@Valid @RequestBody SignupRequest request) {
         User user = authService.signup(request.email(), request.password());
         return ResponseEntity.status(HttpStatus.CREATED).body(UserResponse.from(user));
+    }
+
+    /**
+     * Verify an email address from the link in the verification email (FR-A6..A9). Public;
+     * does not create a session (no auto-login). Invalid/expired/consumed tokens → 400
+     * TOKEN_INVALID via the exception handler.
+     */
+    @GetMapping("/verify")
+    public VerificationResult verify(@RequestParam("token") String token) {
+        User user = emailVerification.verify(token);
+        return new VerificationResult("verified", user.getEmail());
     }
 }
