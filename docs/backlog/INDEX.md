@@ -44,7 +44,7 @@ come from [`../requirements-analysis.md`](../requirements-analysis.md).
 ### EP-02 Authentication & Accounts
 | ID | Type | Title | Story | Deps | Traceability | Status |
 |----|------|-------|-------|------|--------------|--------|
-| HTS-005 | BE | Sign-up endpoint: validation, Argon2id hash, unique-CI email, persist unverified | ST-01 | HTS-002 | FR-A1,A2,A4,A5; AMB-1,AMB-2 | TODO |
+| HTS-005 | BE | Sign-up endpoint: validation, Argon2id hash, unique-CI email, persist unverified | ST-01 | HTS-002 | FR-A1,A2,A4,A5; AMB-1,AMB-2 | DONE |
 | HTS-006 | FE | Sign-up screen: form, validation, success/error states | ST-01 | HTS-003,HTS-005 | FR-S1; NFR-3 | TODO |
 | HTS-007 | BE | Email verification: token issue + SMTP send + verify endpoint (24h, single-use) | ST-02 | HTS-005 | FR-A6,A7,A8,A9; DoD-1 | TODO |
 | HTS-008 | FE | Email verification result screen (success / expired-invalid) | ST-02 | HTS-003,HTS-007 | FR-S2 | TODO |

@@ -45,14 +45,13 @@ class BaselineIntegrationTest {
         assertThat(applied).isEqualTo(1);
     }
 
-    // DoD-9: a fresh database contains no application tables — only Flyway's own history table.
+    // DoD-9: a fresh database contains schema + Flyway metadata only — no preloaded
+    // application data. (The schema itself grows as feature migrations land, e.g. `users`
+    // from HTS-005; what must stay empty is application *data*.)
     @Test
-    void freshDatabaseHasNoApplicationTables() {
-        Integer appTables = jdbc.queryForObject(
-                "SELECT COUNT(*) FROM information_schema.tables " +
-                        "WHERE table_schema = 'public' AND table_name <> 'flyway_schema_history'",
-                Integer.class);
-        assertThat(appTables).isZero();
+    void freshDatabaseHasNoSeedData() {
+        Integer userRows = jdbc.queryForObject("SELECT COUNT(*) FROM users", Integer.class);
+        assertThat(userRows).isZero();
     }
 
     // The app is up and the health endpoint responds.

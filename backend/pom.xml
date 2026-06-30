@@ -19,6 +19,8 @@
 
     <properties>
         <java.version>21</java.version>
+        <!-- Not managed by the Spring Boot BOM; pin explicitly. -->
+        <bouncycastle.version>1.79</bouncycastle.version>
     </properties>
 
     <dependencies>
@@ -37,6 +39,20 @@
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-mail</artifactId>
+        </dependency>
+
+        <!-- Password hashing (Argon2id, AMB-2). spring-security-crypto provides
+             Argon2PasswordEncoder; it delegates to Bouncy Castle's Argon2 implementation.
+             Only the crypto module is pulled in — full Spring Security (endpoint auth/CSRF)
+             arrives in HTS-013. -->
+        <dependency>
+            <groupId>org.springframework.security</groupId>
+            <artifactId>spring-security-crypto</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.bouncycastle</groupId>
+            <artifactId>bcprov-jdk18on</artifactId>
+            <version>${bouncycastle.version}</version>
         </dependency>
 
         <dependency>
@@ -88,8 +104,12 @@
                 <configuration>
                     <!-- Mockito 5 uses the inline mock maker, whose ByteBuddy agent must
                          attach to the test JVM. Allow self-attach so it works across JDKs
-                         and CI/container environments. -->
-                    <argLine>-Djdk.attach.allowAttachSelf=true -XX:+EnableDynamicAgentLoading</argLine>
+                         and CI/container environments.
+                         user.timezone=UTC keeps tests deterministic regardless of host
+                         timezone and avoids pgjdbc forwarding a host tz alias (e.g. the
+                         legacy "Europe/Kiev") that newer Postgres tzdata rejects. Aligns
+                         with the project's UTC-everywhere convention (analysis A-6). -->
+                    <argLine>-Djdk.attach.allowAttachSelf=true -XX:+EnableDynamicAgentLoading -Duser.timezone=UTC</argLine>
                 </configuration>
             </plugin>
         </plugins>
