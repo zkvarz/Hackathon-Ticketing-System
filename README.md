@@ -45,6 +45,40 @@ Planned repository layout:
 
 See [`docs/requirements-analysis.md`](docs/requirements-analysis.md) §4.3 for the full decision rationale.
 
+## Running locally with Podman
+
+The project targets standard Docker/Docker Compose, but it also runs under **Podman**. One
+caveat: `docker compose build` (and `docker compose up --build`) routes image builds through a
+`buildx_buildkit_default` BuildKit container, whose session can hang on some Podman setups.
+If a build appears stuck for many minutes, build the images with Podman's native builder
+(buildah) instead and start the stack without rebuilding:
+
+```bash
+# 1) Build images with podman (buildah — does not use BuildKit)
+podman build -t hts-backend:dev ./backend
+# (frontend image is added in a later ticket)
+
+# 2) Copy env and start the stack WITHOUT rebuilding (uses the images built above)
+cp .env.example .env
+docker compose up -d --no-build        # NOT `--build` on this path
+
+# Reset to a clean, empty database
+docker compose down -v
+```
+
+Backend services and URLs: backend `http://localhost:8080` (health: `/api/health`),
+Mailpit UI `http://localhost:8025`, database on `5432`.
+
+Run the backend tests (unit + Testcontainers) on any machine with a working container engine:
+
+```bash
+cd backend && ./mvnw verify        # requires a running Docker/Podman daemon for Testcontainers
+```
+
+> CI (GitHub Actions, added in a later ticket) uses standard Docker runners, where
+> `docker compose build` and Testcontainers work normally — the BuildKit caveat above is
+> local to certain Podman environments only.
+
 Verify phase:
 ```bash
 Verify phase. Summarize every section you found in requirements.md, list how many requirements/user stories are implied, and list every image file you can see in ./media with a one-line description  
