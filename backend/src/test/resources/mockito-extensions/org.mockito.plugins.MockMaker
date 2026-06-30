@@ -1,0 +1,5 @@
+# Use the subclass-based ByteBuddy mock maker instead of the default inline maker.
+# The inline maker needs a runtime agent self-attach, which fails in some JDK/CI/container
+# environments (e.g. WSL2-backed Docker). The subclass maker needs no agent and works
+# everywhere; it covers our needs (mocking interfaces and non-final Spring components).
+mock-maker-subclass

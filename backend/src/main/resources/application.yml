@@ -1,0 +1,38 @@
+spring:
+  application:
+    name: tickets
+  datasource:
+    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5432/tickets}
+    username: ${SPRING_DATASOURCE_USERNAME:tickets}
+    password: ${SPRING_DATASOURCE_PASSWORD:change-me}
+  jpa:
+    open-in-view: false
+    hibernate:
+      # Schema is owned by Flyway (FR-P8); validate that entities match it, never auto-create.
+      ddl-auto: validate
+    properties:
+      hibernate:
+        jdbc:
+          time_zone: UTC
+  flyway:
+    enabled: true
+    locations: classpath:db/migration
+  mail:
+    host: ${SMTP_HOST:localhost}
+    port: ${SMTP_PORT:1025}
+    username: ${SMTP_USERNAME:}
+    password: ${SMTP_PASSWORD:}
+
+server:
+  port: 8080
+
+# Application-specific config (consumed by later tickets).
+app:
+  base-url: ${APP_BASE_URL:http://localhost:8081}
+  mail:
+    from: ${SMTP_FROM:no-reply@tickets.local}
+  session:
+    idle-timeout: ${APP_SESSION_TIMEOUT_IDLE:30m}
+    absolute-timeout: ${APP_SESSION_TIMEOUT_ABSOLUTE:8h}
+  verification:
+    token-ttl: ${APP_VERIFICATION_TOKEN_TTL:24h}

@@ -44,6 +44,7 @@ services:
   # placeholder Dockerfile exist now so `docker compose config` validates the full stack.
   backend:
     build: ./backend
+    image: hts-backend:dev
     depends_on:
       db:
         condition: service_healthy
