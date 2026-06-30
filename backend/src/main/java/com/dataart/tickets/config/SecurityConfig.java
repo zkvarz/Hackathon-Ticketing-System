@@ -4,6 +4,7 @@ import com.dataart.tickets.common.ApiError;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -16,35 +17,57 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.access.AccessDeniedHandler;
+import org.springframework.security.web.authentication.www.BasicAuthenticationFilter;
 import org.springframework.security.web.context.HttpSessionSecurityContextRepository;
 import org.springframework.security.web.context.SecurityContextRepository;
+import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
+import org.springframework.security.web.csrf.CsrfTokenRequestAttributeHandler;
 
 import java.time.Instant;
 import java.util.List;
 
 /**
- * Security configuration (HTS-011). Establishes session-based authentication and the
- * login/me protection. CSRF and the full public-allowlist lockdown of business endpoints are
- * intentionally deferred to HTS-013; here CSRF is disabled and only {@code /api/auth/me} is
- * guarded, so the existing public endpoints (signup/verify/resend/health) keep working.
+ * Security configuration (HTS-011 auth, HTS-013 lockdown + CSRF).
+ *
+ * <p>Public allowlist (FR-A12): health + the pre-session auth endpoints (signup, login, verify,
+ * resend). Everything else requires authentication. CSRF uses a cookie-to-header token suited to
+ * the SPA ({@code XSRF-TOKEN} cookie → {@code X-XSRF-TOKEN} header); the pre-session/login/logout
+ * endpoints are exempt (no session to protect yet). 401/403 are returned in the standard error
+ * model (architecture.md §8).
  */
 @Configuration
 @EnableWebSecurity
 public class SecurityConfig {
 
     @Bean
-    SecurityFilterChain filterChain(HttpSecurity http, AuthenticationEntryPoint entryPoint)
-            throws Exception {
+    SecurityFilterChain filterChain(HttpSecurity http, AuthenticationEntryPoint entryPoint,
+                                    AccessDeniedHandler accessDeniedHandler) throws Exception {
+        CsrfTokenRequestAttributeHandler csrfRequestHandler = new CsrfTokenRequestAttributeHandler();
+
         http
-                // CSRF is wired with a cookie-to-header repository in HTS-013.
-                .csrf(AbstractHttpConfigurer::disable)
+                .csrf(csrf -> csrf
+                        .csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse())
+                        .csrfTokenRequestHandler(csrfRequestHandler)
+                        // Pre-session endpoints have no session to protect; logout just clears it.
+                        .ignoringRequestMatchers(
+                                "/api/auth/signup", "/api/auth/login",
+                                "/api/auth/logout", "/api/auth/resend"))
+                // Emit the XSRF-TOKEN cookie once the token is resolved.
+                .addFilterAfter(new CsrfCookieFilter(), BasicAuthenticationFilter.class)
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/api/auth/me").authenticated()
-                        .anyRequest().permitAll())
-                .exceptionHandling(eh -> eh.authenticationEntryPoint(entryPoint))
+                        .requestMatchers(HttpMethod.GET, "/api/health").permitAll()
+                        .requestMatchers(HttpMethod.POST,
+                                "/api/auth/signup", "/api/auth/login", "/api/auth/resend").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/auth/verify").permitAll()
+                        // Everything else (incl. /api/auth/me, /logout, and all business endpoints)
+                        // requires authentication.
+                        .anyRequest().authenticated())
+                .exceptionHandling(eh -> eh
+                        .authenticationEntryPoint(entryPoint)
+                        .accessDeniedHandler(accessDeniedHandler))
                 .formLogin(AbstractHttpConfigurer::disable)
                 .httpBasic(AbstractHttpConfigurer::disable)
-                // Logout is handled by a custom JSON endpoint in AuthController.
                 .logout(AbstractHttpConfigurer::disable);
         return http.build();
     }
@@ -66,12 +89,25 @@ public class SecurityConfig {
     /** Unauthenticated access to a protected endpoint → 401 in the standard error model. */
     @Bean
     AuthenticationEntryPoint restAuthenticationEntryPoint(ObjectMapper mapper) {
-        return (request, response, ex) -> {
-            response.setStatus(HttpStatus.UNAUTHORIZED.value());
-            response.setContentType(MediaType.APPLICATION_JSON_VALUE);
-            ApiError body = new ApiError(Instant.now(), HttpStatus.UNAUTHORIZED.value(),
-                    "Unauthorized", "UNAUTHENTICATED", "Authentication is required.", List.of());
-            mapper.writeValue(response.getWriter(), body);
-        };
+        return (request, response, ex) ->
+                writeError(mapper, response, HttpStatus.UNAUTHORIZED, "UNAUTHENTICATED",
+                        "Authentication is required.");
+    }
+
+    /** Forbidden (incl. CSRF failures) → 403 in the standard error model. */
+    @Bean
+    AccessDeniedHandler restAccessDeniedHandler(ObjectMapper mapper) {
+        return (request, response, ex) ->
+                writeError(mapper, response, HttpStatus.FORBIDDEN, "FORBIDDEN",
+                        "You do not have permission to perform this action.");
+    }
+
+    private static void writeError(ObjectMapper mapper, jakarta.servlet.http.HttpServletResponse response,
+                                   HttpStatus status, String code, String message) throws java.io.IOException {
+        response.setStatus(status.value());
+        response.setContentType(MediaType.APPLICATION_JSON_VALUE);
+        ApiError body = new ApiError(Instant.now(), status.value(), status.getReasonPhrase(),
+                code, message, List.of());
+        mapper.writeValue(response.getWriter(), body);
     }
 }

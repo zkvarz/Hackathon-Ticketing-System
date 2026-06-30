@@ -28,7 +28,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.awaitility.Awaitility.await;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.cookie;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -109,7 +109,9 @@ class EmailVerificationIntegrationTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.status").value("verified"))
                 .andExpect(jsonPath("$.email").value(email))
-                .andExpect(header().doesNotExist("Set-Cookie"));
+                // No auto-login (FR-A9): verification must not create a session. (An XSRF-TOKEN
+                // cookie may be set by the CSRF filter — that's not a session.)
+                .andExpect(cookie().doesNotExist("JSESSIONID"));
 
         assertThat(users.findByEmail(email).orElseThrow().isEmailVerified()).isTrue();
         EmailVerificationToken persisted = tokensRepo.findByToken(token).orElseThrow();

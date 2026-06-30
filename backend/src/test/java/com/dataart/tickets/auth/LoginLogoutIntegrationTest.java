@@ -19,6 +19,8 @@ import org.testcontainers.containers.PostgreSQLContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
+import java.util.List;
+
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -76,13 +78,17 @@ class LoginLogoutIntegrationTest {
         assertThat(login.getStatusCode()).isEqualTo(HttpStatus.OK);
         assertThat(login.getBody()).contains("verified@example.com");
 
-        String setCookie = login.getHeaders().getFirst(HttpHeaders.SET_COOKIE);
-        assertThat(setCookie).as("session cookie").isNotNull();
-        assertThat(setCookie).contains("JSESSIONID");
-        assertThat(setCookie).containsIgnoringCase("HttpOnly");
-        assertThat(setCookie).containsIgnoringCase("SameSite=Lax");
+        // With CSRF enabled the response also sets an XSRF-TOKEN cookie, so pick JSESSIONID.
+        List<String> setCookies = login.getHeaders().get(HttpHeaders.SET_COOKIE);
+        assertThat(setCookies).as("Set-Cookie headers").isNotNull();
+        String sessionCookie = setCookies.stream()
+                .filter(c -> c.startsWith("JSESSIONID="))
+                .findFirst()
+                .orElseThrow();
+        assertThat(sessionCookie).containsIgnoringCase("HttpOnly");
+        assertThat(sessionCookie).containsIgnoringCase("SameSite=Lax");
 
-        String cookie = setCookie.split(";", 2)[0]; // JSESSIONID=...
+        String cookie = sessionCookie.split(";", 2)[0]; // JSESSIONID=...
         HttpHeaders authed = new HttpHeaders();
         authed.add(HttpHeaders.COOKIE, cookie);
 

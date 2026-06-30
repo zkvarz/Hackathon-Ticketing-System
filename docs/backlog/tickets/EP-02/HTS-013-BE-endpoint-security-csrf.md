@@ -6,7 +6,7 @@
 | **Type** | BE |
 | **Epic** | EP-02 Authentication |
 | **Story** | ST-05 Enforcement |
-| **Status** | TODO |
+| **Status** | DONE |
 | **Depends on** | HTS-011 |
 | **Blocks** | HTS-014, HTS-015, HTS-031 |
 | **Traceability** | FR-A12; FR-P4, FR-P6; NFR-1; architecture.md §8, §9 |
@@ -31,10 +31,10 @@ assets public, and protect state-changing requests with CSRF — returning prope
 - 401/403 entry points/handlers emit the standard error JSON (FR-P4).
 
 ## Acceptance criteria
-- [ ] AC-1 — Unauthenticated request to a business endpoint returns 401 (standard model).
-- [ ] AC-2 — Public allowlist endpoints work without authentication.
-- [ ] AC-3 — A state-changing request without a valid CSRF token returns 403.
-- [ ] AC-4 — An authenticated request with a valid session (and CSRF where needed) succeeds.
+- [x] AC-1 — Unauthenticated request to a business endpoint returns 401 (standard model).
+- [x] AC-2 — Public allowlist endpoints work without authentication.
+- [x] AC-3 — A state-changing request without a valid CSRF token returns 403.
+- [x] AC-4 — An authenticated request with a valid session (and CSRF where needed) succeeds.
 
 ## Test plan
 **Unit (JUnit 5 + Mockito / Spring Security test):**
@@ -52,8 +52,25 @@ curl -i localhost:8080/api/teams        # expect 401 when unauthenticated
 ```
 
 ## Definition of Done
-- [ ] AC-1..AC-4 met
-- [ ] Unit + Testcontainers security tests pass (positive/negative/boundary)
-- [ ] Allowlist exactly matches FR-A12; no business endpoint left public
-- [ ] 401/403 use the standard error model
-- [ ] INDEX.md status updated
+- [x] AC-1..AC-4 met
+- [x] Unit + Testcontainers security tests pass (positive/negative/boundary)
+- [x] Allowlist exactly matches FR-A12; no business endpoint left public
+- [x] 401/403 use the standard error model
+- [x] INDEX.md status updated
+
+## Implementation notes
+- `SecurityConfig` (updated from HTS-011): allowlist = `GET /api/health`, `POST
+  /api/auth/{signup,login,resend}`, `GET /api/auth/verify`; **everything else authenticated**
+  (incl. `/api/auth/me`, `/logout`, and all future business endpoints).
+- CSRF on via `CookieCsrfTokenRepository.withHttpOnlyFalse()` + `CsrfTokenRequestAttributeHandler`
+  (SPA cookie→header: `XSRF-TOKEN` → `X-XSRF-TOKEN`). The pre-session endpoints
+  (signup/login/logout/resend) are CSRF-exempt (no session to protect). `CsrfCookieFilter`
+  forces the deferred token to resolve so the cookie is actually written for the SPA.
+- 401 `UNAUTHENTICATED` (entry point) and 403 `FORBIDDEN` (access-denied handler, also covers
+  CSRF failures) returned in the standard error model.
+- Tests (`EndpointSecurityIntegrationTest`, Testcontainers + spring-security-test): 401 on
+  unauthenticated business path, health reachable anonymously, authenticated POST without CSRF
+  → 403, with `user()`+`csrf()` passes security (404, no controller yet), near-miss path
+  requires auth. Existing auth integration tests stay green (their endpoints are exempt/GET);
+  the login cookie assertion now selects the JSESSIONID cookie since an XSRF-TOKEN cookie is
+  also set.
