@@ -1,6 +1,9 @@
 # Hackathon-Ticketing-System
 Build a small, working Kanban-style ticket tracker as a three-tier SPA backed by an RDBMS.
 
+> **Developers & AI agents:** start with [`AGENTS.md`](AGENTS.md) — it points to the spec,
+> analysis, architecture, and the ticket backlog, and explains the spec-driven workflow.
+
 ## Requirements
 
 The original requirements were provided as a Word document (`Hackathon_Ticketing_System_Requirements_v3.docx`). To make them easier to work with using an AI agentic approach (e.g. Claude Code), the document was converted to Markdown with [pandoc](https://pandoc.org/):
@@ -78,6 +81,9 @@ make sure it can run on any env by any developer locally. I'm not FE expert but 
 Let me know any questions and answers to above as well from your point of view.                                                                                                                        
 Do not code yet, only plan at the moment.       
 ```
+Change first task:
+```bash
 Let's also not forget about modifying gitignore file. We need to make sure IntelliJ files are not pushed to the repo. 
 If it's suitable for the HTS-001 task (first one) please add gitignore requirement.
 Also what do we need to make sure that tickets can be done if we pass this project to other developers and/or AI tools? For example, can we create AGENTS.MD file for example? To mention folder structure and specific  critical md files to start the implementation if it make sense? Also, can we mention in AGENTS file that if requireements changes please modify such and such file.
+```
