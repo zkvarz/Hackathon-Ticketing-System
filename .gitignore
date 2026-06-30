@@ -1,0 +1,55 @@
+# ---- Secrets / local config ----
+.env
+.env.local
+*.env
+!.env.example
+
+# ---- IDE: IntelliJ IDEA / JetBrains ----
+.idea/
+*.iml
+*.ipr
+*.iws
+out/
+
+# ---- IDE: VS Code / Eclipse / NetBeans ----
+.vscode/
+.project
+.classpath
+.settings/
+.apt_generated/
+nbproject/
+
+# ---- OS noise ----
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# ---- Backend: Java / Maven (Spring Boot) ----
+backend/target/
+target/
+*.class
+*.log
+.mvn/timing.properties
+# keep the Maven wrapper itself:
+!**/.mvn/wrapper/maven-wrapper.jar
+
+# ---- Frontend: Node / Vite / React ----
+frontend/node_modules/
+node_modules/
+frontend/dist/
+dist/
+frontend/coverage/
+coverage/
+.vite/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# ---- Test / tooling output ----
+playwright-report/
+test-results/
+.nyc_output/
+
+# ---- Docker / runtime volumes (if any local bind mounts) ----
+*.pid

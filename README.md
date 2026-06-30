@@ -68,3 +68,16 @@ Regarding ambiguities. Let's compare session-cookie vs bearer-token (me as BE mo
 vs numeric ids. I reviewed AMB-1,2,3,4,5,6,8,9,10  and confirm proposed column can be used as confirmed requirement, update analysis md again.  Regarding AMB-7 need a recommendation and related to   
 session vs bearer topic is it? 
 ```
+Plan:
+```bash
+Let's plan. I was thinking to create docs/architecture.md to make sure to include folder structure etc and then use this information in the ticket(s). Let's create epics stories and implementation   
+tickets (structure best how you like). Make sure to include everything in the actual implementation md filles (titled accordingly for understanding similiar to task in jira and even numbered for     
+visibility and tracking)  to actually implement, test and run specific ticket. Each implementation ticket must be separate for BE and separate implementation for FE for a single story. For example,  
+BE must have implementation, at least unit/mockito test converage for positive, nagative and boundary at least for each story/implementation if integration test is done then containers are used to   
+make sure it can run on any env by any developer locally. I'm not FE expert but some tests need to be done as well if it's possible. Browser tests may be out of scope as too long to implement by AI?
+Let me know any questions and answers to above as well from your point of view.                                                                                                                        
+Do not code yet, only plan at the moment.       
+```
+Let's also not forget about modifying gitignore file. We need to make sure IntelliJ files are not pushed to the repo. 
+If it's suitable for the HTS-001 task (first one) please add gitignore requirement.
+Also what do we need to make sure that tickets can be done if we pass this project to other developers and/or AI tools? For example, can we create AGENTS.MD file for example? To mention folder structure and specific  critical md files to start the implementation if it make sense? Also, can we mention in AGENTS file that if requireements changes please modify such and such file.
