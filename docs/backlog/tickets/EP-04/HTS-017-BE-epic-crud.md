@@ -6,7 +6,7 @@
 | **Type** | BE |
 | **Epic** | EP-04 Epics |
 | **Story** | ST-01 Epic management |
-| **Status** | TODO |
+| **Status** | DONE |
 | **Depends on** | HTS-015 |
 | **Blocks** | HTS-018, HTS-019 |
 | **Traceability** | FR-E1..E5, FR-E8; FR-P4; architecture.md §6, §8 |
@@ -28,10 +28,12 @@ non-empty title and optional description, blocking deletion while tickets refere
 - List filtered by `teamId`.
 
 ## Acceptance criteria
-- [ ] AC-1 — Create with team + non-empty title persists; list by team returns it.
-- [ ] AC-2 — Blank/whitespace title → 400; over-length title → 400.
-- [ ] AC-3 — Editing title/description works; attempting to change team → 400 `EPIC_TEAM_IMMUTABLE`.
-- [ ] AC-4 — Delete of an unreferenced epic succeeds; with referencing tickets → 409 `EPIC_HAS_TICKETS`.
+- [x] AC-1 — Create with team + non-empty title persists; list by team returns it.
+- [x] AC-2 — Blank/whitespace title → 400; over-length title → 400.
+- [x] AC-3 — Editing title/description works; attempting to change team → 400 `EPIC_TEAM_IMMUTABLE`.
+- [x] AC-4 — Delete of an unreferenced epic succeeds; with referencing tickets → 409
+  `EPIC_HAS_TICKETS` (rule via `EpicReferenceCounter`; ticket counter lands in HTS-019 —
+  unit-tested here with a mock counter).
 
 ## Test plan
 **Unit (JUnit 5 + Mockito):**
@@ -50,7 +52,23 @@ curl -X POST 'localhost:8080/api/epics?teamId=<uuid>' -H 'Content-Type: applicat
 ```
 
 ## Definition of Done
-- [ ] AC-1..AC-4 met
-- [ ] Unit tests (positive/negative/boundary) pass
-- [ ] Testcontainers integration (immutable team + 409 referenced delete) passes
-- [ ] INDEX.md status updated
+- [x] AC-1..AC-4 met
+- [x] Unit tests (positive/negative/boundary) pass
+- [x] Testcontainers integration (immutable team + referenced delete) passes
+- [x] INDEX.md status updated
+
+## Implementation notes
+- `Epic` entity (`ManyToOne Team`, `team_id` `updatable=false` for FR-E2) + `V5__epics.sql`
+  (FK to teams, no cascade). `EpicService`: create validates the team exists (404), trims
+  title, nulls blank description; update rejects a team change (400 `EPIC_TEAM_IMMUTABLE`);
+  delete blocked when referenced (409 `EPIC_HAS_TICKETS`) via an `EpicReferenceCounter`
+  (tickets plug in at HTS-019).
+- **`EpicTeamReferenceCounter` (label "epics")** registers epics as a team reference — this is
+  what activates HTS-015's team delete-block: a team with epics now returns 409
+  `TEAM_HAS_CHILDREN`, verified end-to-end here.
+- `EpicController` (`/api/epics`, `teamId` query param for list/create, authenticated + CSRF).
+  Repository uses nested-path derived queries (`findByTeam_Id…`, `countByTeam_Id`).
+- Tests (11): `EpicServiceTest` (Mockito: create/missing-team-404/immutable-team/update/
+  mocked-counter-409) + `EpicCrudIntegrationTest` (Testcontainers: list-by-team, title
+  validation incl. 201-char, team immutability, **epic blocks team delete then frees it**,
+  missing-team 404).

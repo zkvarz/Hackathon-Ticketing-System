@@ -2,6 +2,8 @@ package com.dataart.tickets.common;
 
 import com.dataart.tickets.auth.EmailAlreadyTakenException;
 import com.dataart.tickets.auth.TokenInvalidException;
+import com.dataart.tickets.epic.EpicHasTicketsException;
+import com.dataart.tickets.epic.EpicTeamImmutableException;
 import com.dataart.tickets.team.TeamHasChildrenException;
 import com.dataart.tickets.team.TeamNameTakenException;
 import org.springframework.http.HttpStatus;
@@ -74,6 +76,16 @@ public class ApiExceptionHandler {
     @ExceptionHandler(TeamHasChildrenException.class)
     public ResponseEntity<ApiError> handleTeamHasChildren(TeamHasChildrenException ex) {
         return build(HttpStatus.CONFLICT, "TEAM_HAS_CHILDREN", ex.getMessage(), List.of());
+    }
+
+    @ExceptionHandler(EpicTeamImmutableException.class)
+    public ResponseEntity<ApiError> handleEpicTeamImmutable(EpicTeamImmutableException ex) {
+        return build(HttpStatus.BAD_REQUEST, "EPIC_TEAM_IMMUTABLE", ex.getMessage(), List.of());
+    }
+
+    @ExceptionHandler(EpicHasTicketsException.class)
+    public ResponseEntity<ApiError> handleEpicHasTickets(EpicHasTicketsException ex) {
+        return build(HttpStatus.CONFLICT, "EPIC_HAS_TICKETS", ex.getMessage(), List.of());
     }
 
     private ResponseEntity<ApiError> build(HttpStatus status, String code, String message,
