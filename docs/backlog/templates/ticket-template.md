@@ -49,3 +49,4 @@ data touched, references to `architecture.md` sections instead of repeating shar
 - [ ] Integration test passes (where applicable) using containers
 - [ ] No secrets committed; config via env (where applicable)
 - [ ] Traceable to its FR/DoD IDs; INDEX.md status updated
+- [ ] All new/changed files committed (`git add -A && git commit -m "HTS-XXX: <title>"`); `git status` clean

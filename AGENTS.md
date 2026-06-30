@@ -73,6 +73,8 @@ Full detail (per-tier package/folder layout, container ports, config keys) is in
 5. **Write the tests the ticket lists** (see §5). Tests are not optional.
 6. **Run and verify** using the ticket's "How to run / verify" commands.
 7. **Update `INDEX.md` status** to `IN-REVIEW`/`DONE` and tick the ticket's DoD checklist.
+8. **Commit the work** (see §5 → Version control). Every ticket ends with its own commit so
+   nothing is left untracked.
 
 ---
 
@@ -91,6 +93,11 @@ Full detail (per-tier package/folder layout, container ports, config keys) is in
 - **Conventions:** `HTS-` prefix for dev tickets (distinct from in-app ticket IDs like
   `TCK-1042`); UUIDv7 IDs; ISO-8601 UTC timestamps; standardized API error model
   (architecture.md §8).
+- **Version control (every ticket ends with a commit):** when a ticket is complete and its
+  tests pass, stage and commit **all** new/changed files so nothing is left untracked. Use the
+  ticket ID in the message, e.g. `git add -A && git commit -m "HTS-001: monorepo scaffold + docker-compose"`.
+  `.gitignore` keeps secrets, IDE files (`.idea/`), and build output out of the commit — verify
+  `git status` is clean afterward. Do not commit a ticket whose tests fail.
 
 ### Build / run / test
 ```bash
