@@ -6,7 +6,7 @@
 | **Type** | BE |
 | **Epic** | EP-03 Teams |
 | **Story** | ST-01 Team management |
-| **Status** | TODO |
+| **Status** | DONE |
 | **Depends on** | HTS-013 |
 | **Blocks** | HTS-016, HTS-017 |
 | **Traceability** | FR-T1..T6; FR-P4; AMB-9; architecture.md §6, §8 |
@@ -27,10 +27,12 @@ and prevent deletion while tickets or epics reference the team.
 - `modified_at` updated on rename.
 
 ## Acceptance criteria
-- [ ] AC-1 — Create with a valid unique name persists; list returns it.
-- [ ] AC-2 — Empty/whitespace-only name → 400; duplicate (case/space-insensitive) → 409 `NAME_TAKEN`.
-- [ ] AC-3 — Rename updates the name and `modified_at`; uniqueness re-checked.
-- [ ] AC-4 — Delete of an empty team succeeds; delete of a team with tickets or epics → 409 `TEAM_HAS_CHILDREN`.
+- [x] AC-1 — Create with a valid unique name persists; list returns it.
+- [x] AC-2 — Empty/whitespace-only name → 400; duplicate (case/space-insensitive) → 409 `NAME_TAKEN`.
+- [x] AC-3 — Rename updates the name and `modified_at`; uniqueness re-checked.
+- [x] AC-4 — Delete of an empty team succeeds; delete of a team with tickets or epics → 409
+  `TEAM_HAS_CHILDREN` (rule via `TeamReferenceCounter`; epic/ticket counters land in
+  HTS-017/HTS-019 — unit-tested here with a mock counter, end-to-end with epics in HTS-017).
 
 ## Test plan
 **Unit (JUnit 5 + Mockito):**
@@ -49,7 +51,21 @@ curl -X POST localhost:8080/api/teams -H 'Content-Type: application/json' -d '{"
 ```
 
 ## Definition of Done
-- [ ] AC-1..AC-4 met
-- [ ] Unit tests (positive/negative/boundary) pass
-- [ ] Testcontainers integration (CI uniqueness + 409 referenced delete) passes
-- [ ] INDEX.md status updated
+- [x] AC-1..AC-4 met
+- [x] Unit tests (positive/negative/boundary) pass
+- [x] Testcontainers integration (CI uniqueness + delete) passes (referenced-delete e2e in HTS-017)
+- [x] INDEX.md status updated
+
+## Implementation notes
+- `Team` entity + `V4__teams.sql` (unique functional index on `lower(name)`). `TeamService`:
+  trim + CI-unique create/rename (`NAME_TAKEN` 409), `NotFoundException` (404) on missing,
+  delete blocked when referenced.
+- **Extensible referenced-delete:** `TeamReferenceCounter` interface; `TeamService` sums all
+  registered counters and blocks delete (`TEAM_HAS_CHILDREN` 409) when > 0. No counters exist
+  yet (team always deletable); HTS-017 (epics) and HTS-019 (tickets) each register one. The
+  same counters feed `TeamResponse.epicCount`/`ticketCount` (0 for now) for HTS-016's UI.
+- `TeamController` (`/api/teams` CRUD, authenticated + CSRF). Exception handler gains
+  `NOT_FOUND` (404), `NAME_TAKEN` (409), `TEAM_HAS_CHILDREN` (409).
+- Tests (9): `TeamServiceTest` (Mockito incl. mocked counter → 409 delete-blocked) +
+  `TeamCrudIntegrationTest` (Testcontainers + spring-security-test: create/list/rename/
+  delete-empty, blank → 400, CI-duplicate → 409, missing → 404).

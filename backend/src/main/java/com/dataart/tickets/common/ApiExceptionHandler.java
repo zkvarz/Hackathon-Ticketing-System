@@ -2,6 +2,8 @@ package com.dataart.tickets.common;
 
 import com.dataart.tickets.auth.EmailAlreadyTakenException;
 import com.dataart.tickets.auth.TokenInvalidException;
+import com.dataart.tickets.team.TeamHasChildrenException;
+import com.dataart.tickets.team.TeamNameTakenException;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.DisabledException;
@@ -57,6 +59,21 @@ public class ApiExceptionHandler {
     public ResponseEntity<ApiError> handleBadCredentials(BadCredentialsException ex) {
         return build(HttpStatus.UNAUTHORIZED, "BAD_CREDENTIALS",
                 "Invalid email or password.", List.of());
+    }
+
+    @ExceptionHandler(NotFoundException.class)
+    public ResponseEntity<ApiError> handleNotFound(NotFoundException ex) {
+        return build(HttpStatus.NOT_FOUND, "NOT_FOUND", ex.getMessage(), List.of());
+    }
+
+    @ExceptionHandler(TeamNameTakenException.class)
+    public ResponseEntity<ApiError> handleTeamNameTaken(TeamNameTakenException ex) {
+        return build(HttpStatus.CONFLICT, "NAME_TAKEN", ex.getMessage(), List.of());
+    }
+
+    @ExceptionHandler(TeamHasChildrenException.class)
+    public ResponseEntity<ApiError> handleTeamHasChildren(TeamHasChildrenException ex) {
+        return build(HttpStatus.CONFLICT, "TEAM_HAS_CHILDREN", ex.getMessage(), List.of());
     }
 
     private ResponseEntity<ApiError> build(HttpStatus status, String code, String message,
