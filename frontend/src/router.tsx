@@ -11,12 +11,8 @@ import { LoginPage } from './features/auth/LoginPage';
 import { SignupPage } from './features/auth/SignupPage';
 import { VerifyPage } from './features/auth/VerifyPage';
 import { TeamsPage } from './features/teams/TeamsPage';
-import {
-  BoardPage,
-  EpicsPage,
-  NotFoundPage,
-  TicketDetailsPage,
-} from './pages/placeholders';
+import { EpicsPage } from './features/epics/EpicsPage';
+import { BoardPage, NotFoundPage, TicketDetailsPage } from './pages/placeholders';
 
 export const routes = [
   {

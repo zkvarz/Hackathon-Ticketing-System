@@ -65,7 +65,7 @@ come from [`../requirements-analysis.md`](../requirements-analysis.md).
 | ID | Type | Title | Story | Deps | Traceability | Status |
 |----|------|-------|-------|------|--------------|--------|
 | HTS-017 | BE | Epic CRUD: team-fixed, title validation, 409 on delete-with-tickets | ST-01 | HTS-015 | FR-E1..E5,E8; FR-P4 | DONE |
-| HTS-018 | FE | Epic management screen: team selector, list, create/edit/delete | ST-01 | HTS-016,HTS-017 | FR-S8; NFR-3 | TODO |
+| HTS-018 | FE | Epic management screen: team selector, list, create/edit/delete | ST-01 | HTS-016,HTS-017 | FR-S8; NFR-3 | DONE |
 
 ### EP-05 Tickets
 | ID | Type | Title | Story | Deps | Traceability | Status |

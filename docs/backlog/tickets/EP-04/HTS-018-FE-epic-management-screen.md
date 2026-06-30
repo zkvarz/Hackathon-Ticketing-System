@@ -6,7 +6,7 @@
 | **Type** | FE |
 | **Epic** | EP-04 Epics |
 | **Story** | ST-01 Epic management |
-| **Status** | TODO |
+| **Status** | DONE |
 | **Depends on** | HTS-016, HTS-017 |
 | **Blocks** | HTS-020 |
 | **Traceability** | FR-S8, FR-E3, FR-E8; NFR-3; architecture.md §11; wireframe image5 |
@@ -28,10 +28,10 @@ count, modified), and create/edit/delete with delete disabled for referenced epi
 - Matches wireframe image5 (Edit epic panel; disabled delete when referenced).
 
 ## Acceptance criteria
-- [ ] AC-1 — Selecting a team lists its epics with counts; empty state when none.
-- [ ] AC-2 — Create adds an epic to the selected team; blank title blocked.
-- [ ] AC-3 — Edit updates title/description; the team field is not editable.
-- [ ] AC-4 — Delete disabled (with reason) for referenced epics; enabled and confirmed for unreferenced.
+- [x] AC-1 — Selecting a team lists its epics with counts; empty state when none.
+- [x] AC-2 — Create adds an epic to the selected team; blank title blocked.
+- [x] AC-3 — Edit updates title/description; the team field is not editable.
+- [x] AC-4 — Delete disabled (with reason) for referenced epics; enabled and confirmed for unreferenced.
 
 ## Test plan
 **Component (Vitest + RTL):**
@@ -49,7 +49,19 @@ npm run dev   # /epics
 ```
 
 ## Definition of Done
-- [ ] AC-1..AC-4 met
-- [ ] Component + MSW tests pass (positive/negative/boundary)
-- [ ] Team-fixed-on-create + disabled-delete match wireframe image5
-- [ ] INDEX.md status updated
+- [x] AC-1..AC-4 met
+- [x] Component + MSW tests pass (positive/negative/boundary)
+- [x] Team-fixed-on-create + disabled-delete match wireframe image5
+- [x] INDEX.md status updated
+
+## Implementation notes
+- `features/epics/EpicsPage` wired into `/epics` (replaces placeholder). A team `<select>`
+  (from `listTeams`, defaults to the first team) drives the `['epics', teamId]` query;
+  switching teams refetches. Loading/Empty/Error states per NFR-3.
+- Create fixes the team to the current selection (no team field); edit is inline title +
+  description only (team not editable, FR-E2); delete disabled when `ticketCount > 0` (reason
+  via `title`) with a two-step inline confirm. 409 `EPIC_HAS_TICKETS` mapped to a readable
+  message defensively.
+- `api/epics.ts` adds `listEpics`/`createEpic`/`updateEpic`/`deleteEpic`.
+- Tests (6): list+counts, empty, blank-title blocked, create→appears, delete
+  enabled/disabled boundary, team-switch refetch.
