@@ -42,3 +42,19 @@ export function verifyEmail(token: string) {
 export function resendVerification(email: string) {
   return apiClient.post<void>('/auth/resend', { email });
 }
+
+/**
+ * POST /api/auth/forgot-password — request a password reset email (HTS-038). The server always
+ * responds generically (no enumeration), so the UI shows the same confirmation either way.
+ */
+export function forgotPassword(email: string) {
+  return apiClient.post<void>('/auth/forgot-password', { email });
+}
+
+/**
+ * POST /api/auth/reset-password — set a new password using the emailed token (HTS-038). Throws
+ * ApiError with code TOKEN_INVALID (400) when the token is unknown/expired/consumed.
+ */
+export function resetPassword(token: string, password: string) {
+  return apiClient.post<void>('/auth/reset-password', { token, password });
+}

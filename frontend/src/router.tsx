@@ -11,6 +11,8 @@ import { AppLayout } from './layout/AppLayout';
 import { LoginPage } from './features/auth/LoginPage';
 import { SignupPage } from './features/auth/SignupPage';
 import { VerifyPage } from './features/auth/VerifyPage';
+import { ForgotPasswordPage } from './features/auth/ForgotPasswordPage';
+import { ResetPasswordPage } from './features/auth/ResetPasswordPage';
 import { TeamsPage } from './features/teams/TeamsPage';
 import { EpicsPage } from './features/epics/EpicsPage';
 import { TicketDetailsPage } from './features/tickets/TicketDetailsPage';
@@ -31,6 +33,8 @@ export const routes = [
       { path: '/login', element: <LoginPage /> },
       { path: '/signup', element: <SignupPage /> },
       { path: '/verify', element: <VerifyPage /> },
+      { path: '/forgot-password', element: <ForgotPasswordPage /> },
+      { path: '/reset-password', element: <ResetPasswordPage /> },
       {
         element: <RequireAuth />,
         children: [

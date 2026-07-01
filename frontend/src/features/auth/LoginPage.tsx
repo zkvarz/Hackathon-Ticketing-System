@@ -89,6 +89,9 @@ export function LoginPage() {
       )}
 
       <p>
+        <Link to="/forgot-password">Forgot password?</Link>
+      </p>
+      <p>
         Need an account? <Link to="/signup">Sign up</Link>
       </p>
     </section>
