@@ -208,15 +208,16 @@ it does not start it.
 ## API documentation (OpenAPI / Swagger)
 
 The backend publishes a **code-first OpenAPI 3 spec** (springdoc, HTS-050) — generated from the
-controllers, no hand-maintained YAML. In dev the stack exposes:
+controllers, no hand-maintained YAML. In dev the stack exposes it on the **app origin** (proxied by
+nginx, HTS-052) and directly on the backend port:
 
-| What | URL |
-|------|-----|
-| Interactive docs (Swagger UI) | http://localhost:8080/swagger-ui/index.html |
-| Raw spec (JSON) | http://localhost:8080/v3/api-docs |
+| What | App origin (proxied) | Direct (backend) |
+|------|----------------------|------------------|
+| Interactive docs (Swagger UI) | http://localhost:8081/swagger-ui/index.html | http://localhost:8080/swagger-ui/index.html |
+| Raw spec (JSON) | http://localhost:8081/v3/api-docs | http://localhost:8080/v3/api-docs |
 
 > These are **dev-only**: the `prod` profile disables both, and they're dropped from the security
-> allowlist when disabled. (They're served on the backend port directly — nginx only proxies `/api`.)
+> allowlist when disabled (the nginx proxy then just forwards to the backend's 404).
 
 The frontend's API types are **generated from this spec**, so the SPA can't silently drift from the
 backend. With the stack up:
@@ -229,7 +230,9 @@ npm run typecheck      # fails if the backend contract changed under the fronten
 
 `src/api/schema.d.ts` is committed, so builds don't need the backend; regenerate it whenever the
 API changes. The domain response types (`Ticket`, `Team`, `Epic`, …) and ticket enums are derived
-from it (`frontend/src/api/*.ts`).
+from it (`frontend/src/api/*.ts`). **CI enforces this**: the `api-contract` job (HTS-051) boots the
+backend, reruns `gen:api`, and fails the build if the committed types are stale or no longer
+typecheck — so contract drift can't merge.
 
 ## Troubleshooting
 
