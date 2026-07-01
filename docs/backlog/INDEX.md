@@ -120,6 +120,8 @@ come from [`../requirements-analysis.md`](../requirements-analysis.md).
 | HTS-045 | BE | Single-source modified_at (clock-driven, drop dual write) | ST-02 | HTS-019 | AMB-3; FR-K4,P5 | SUPERSEDED (→HTS-047) |
 | HTS-046 | BE | Absolute session lifetime cap (8h), independent of idle timeout | ST-03 | HTS-011 | AMB-7; NFR-1 | DONE |
 | HTS-047 | BE | Single-source timestamps via Spring Data JPA Auditing (Clock-driven) | ST-02 | HTS-019 | AMB-3; FR-K4,P5 | DONE |
+| HTS-048 | QA/E2E | Explicit epic-CRUD Playwright spec (create/edit/delete + referenced guard) | ST-05 | HTS-036,HTS-018 | DoD-2; FR-E1..E5,E8 | DONE |
+| HTS-049 | INFRA | Wire the Playwright E2E suite into CI (compose stack + artifact) | ST-05 | HTS-036 | NFR-6; DoD-1,3,6 | TODO |
 
 ---
 

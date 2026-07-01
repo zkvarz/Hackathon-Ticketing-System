@@ -101,16 +101,34 @@ export async function createTeam(page: Page, name = uniqueName()): Promise<strin
   return name;
 }
 
+/** Create an epic via the Epics screen for the given team, and return its title. */
+export async function createEpic(
+  page: Page,
+  opts: { team: string; title: string; description?: string },
+): Promise<string> {
+  await page.goto('/epics');
+  await page.getByLabel('Team').selectOption({ label: opts.team });
+  await page.getByLabel('New epic').fill(opts.title);
+  await page.getByLabel('Description').fill(opts.description ?? 'Created by the E2E suite.');
+  await page.getByRole('button', { name: 'Add epic' }).click();
+  await expect(page.getByRole('cell', { name: opts.title, exact: true })).toBeVisible();
+  return opts.title;
+}
+
 /**
  * Create a ticket through the ticket form (for the given team), landing on its detail view. Returns
  * the ticket's detail URL. Type/state keep their defaults (bug / new), which suits the board specs.
+ * Pass `epic` (an epic title in the team) to reference an epic — used by the referenced-delete guard.
  */
 export async function createTicket(
   page: Page,
-  opts: { team: string; title: string; body?: string },
+  opts: { team: string; title: string; body?: string; epic?: string },
 ): Promise<string> {
   await page.goto('/tickets/new');
   await page.getByLabel('Team').selectOption({ label: opts.team });
+  if (opts.epic) {
+    await page.getByLabel('Epic').selectOption({ label: opts.epic });
+  }
   await page.getByLabel('Title').fill(opts.title);
   await page.getByLabel('Description').fill(opts.body ?? 'Created by the E2E suite.');
   await page.getByRole('button', { name: 'Create ticket' }).click();
