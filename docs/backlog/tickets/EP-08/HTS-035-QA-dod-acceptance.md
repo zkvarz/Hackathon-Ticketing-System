@@ -6,7 +6,7 @@
 | **Type** | QA |
 | **Epic** | EP-08 Cross-cutting & Delivery |
 | **Story** | ST-04 Delivery acceptance |
-| **Status** | TODO |
+| **Status** | IN-REVIEW |
 | **Depends on** | HTS-016, HTS-018, HTS-020, HTS-024, HTS-028, HTS-030, HTS-033, HTS-034 |
 | **Blocks** | HTS-036 |
 | **Traceability** | DoD-1..DoD-10; FR-P9; architecture.md §7, §13 |
@@ -27,10 +27,13 @@ DoD gate (DoD-1..DoD-10) passes through the running application.
 - Record results in this ticket / a checklist doc.
 
 ## Acceptance criteria
-- [ ] AC-1 — Fresh DB after `down -v && up` contains only schema + Flyway metadata (no app rows).
-- [ ] AC-2 — Each DoD-1..DoD-10 item is exercised and passes, with evidence noted.
-- [ ] AC-3 — All required test/demo data is creatable via UI/API (no manual DB edits) (DoD-10).
-- [ ] AC-4 — Any failure is filed as a defect ticket and linked.
+- [~] AC-1 — Fresh DB after `down -v && up` contains only schema + Flyway metadata (no app rows).
+  **Verified statically** (no seed data exists); live SQL confirmation pending a fresh boot.
+- [~] AC-2 — Each DoD-1..DoD-10 item exercised. DoD-8/DoD-9 verified statically; DoD-1 also
+  verified live via the E2E suite (HTS-036); the rest have a documented run-through ready.
+- [x] AC-3 — All data is creatable via UI/API (the walk-through uses no manual DB edits, by design).
+- [x] AC-4 — Defect-filing process defined in the checklist (no defects found in static/authoring
+  pass).
 
 ## Test plan
 This ticket *is* the acceptance pass:
@@ -45,7 +48,27 @@ docker compose down -v && docker compose up --build
 ```
 
 ## Definition of Done
-- [ ] AC-1..AC-4 met
-- [ ] DoD-1..DoD-10 checklist completed with evidence
-- [ ] Fresh-DB emptiness confirmed
-- [ ] INDEX.md status updated
+- [x] Acceptance checklist authored: [`docs/qa/dod-acceptance-checklist.md`](../../../qa/dod-acceptance-checklist.md)
+- [x] Static gates verified from source: DoD-8 (no committed secret) + DoD-9/FR-P9 (no seed data)
+- [ ] Live DoD-1..DoD-10 walk-through ticked with evidence — pending a fresh `docker compose up --build`
+- [ ] Fresh-DB emptiness confirmed via the documented SQL on a clean boot
+- [x] INDEX.md status updated (IN-REVIEW)
+
+## Implementation notes (as built)
+- Deliverable: **`docs/qa/dod-acceptance-checklist.md`** — a DoD-1..DoD-10 acceptance matrix with
+  per-gate steps, expected evidence, and the automated coverage already backing each item, plus the
+  fresh-DB / no-seed verification procedure (exact `psql` row-count SQL, FR-P9) and an AC-4
+  defect-filing convention.
+- **Statically verified now (no running app needed):**
+  - *DoD-9 / FR-P9 (no seed):* the Flyway set V1..V12 is pure DDL — no `INSERT INTO` in any
+    migration, and no `CommandLineRunner`/`ApplicationRunner`/`@PostConstruct` loader, `data.sql`, or
+    `defer-datasource-initialization` in the backend. A fresh DB therefore holds only the schema +
+    `flyway_schema_history`.
+  - *DoD-8 (no secret):* `application.yml` sources datasource/SMTP creds from env with placeholder
+    defaults only; `.env` is gitignored (`!.env.example` kept); passwords are Argon2id-hashed.
+- **Requires the operator (documented, not run here):** the live DoD-1..10 walk-through and the
+  fresh-DB SQL both need the stack rebuilt from current source (`docker compose down -v && up
+  --build`). The stack running in this environment is a stale pre-HTS-020 build and is not managed
+  by this session's container engine, so it was not reset/rebuilt. DoD-1 has already been shown green
+  end-to-end by the HTS-036 E2E suite against the live backend.
+- Marked **IN-REVIEW**: checklist + static gates done; live sign-off is the operator's fresh-stack pass.
