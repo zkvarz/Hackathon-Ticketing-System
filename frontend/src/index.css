@@ -192,13 +192,21 @@ body {
   color: var(--muted);
   font-size: 0.8rem;
 }
+/* Virtualized scroll viewport for a column's cards (HTS-043). Bounded height + overflow makes it
+   the scrollable element the virtualizer measures and dnd-kit auto-scrolls during a drag. */
+.board__column-scroll {
+  max-height: 70vh;
+  overflow-y: auto;
+}
+/* Under virtualization the list is a positioned spacer of the full scroll height, with each card
+   absolutely placed via a translateY transform (set inline), so flex/gap no longer apply. */
 .board__cards {
   list-style: none;
   margin: 0;
   padding: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
+}
+.board__card-item {
+  padding-bottom: 0.5rem;
 }
 .ticket-card {
   display: flex;

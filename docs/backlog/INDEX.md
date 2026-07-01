@@ -27,7 +27,7 @@ come from [`../requirements-analysis.md`](../requirements-analysis.md).
 | EP-06 | Comments | Add + chronological list + immutability | TODO |
 | EP-07 | Kanban Board | Board view, drag-drop persist/revert, filters & search | TODO |
 | EP-08 | Cross-cutting & Delivery | Error model, UX states, security, README, DoD, E2E | TODO |
-| EP-09 | Stretch (optional) | Password reset, comment edit/delete, history, virtualization | TODO |
+| EP-09 | Stretch (optional) | Password reset, comment edit/delete, history, virtualization | DONE |
 | EP-10 | Improvements & Tech Debt (optional) | Perf + internal-quality items found during build | TODO |
 
 ---
@@ -111,7 +111,7 @@ come from [`../requirements-analysis.md`](../requirements-analysis.md).
 | HTS-040 | FE | Edit/delete own comments (frontend) | ST-02 | HTS-039 | Stretch §2.10 | DONE |
 | HTS-041 | BE | Ticket activity history (backend) | ST-03 | HTS-019 | Stretch §2.10 | DONE |
 | HTS-042 | FE | Ticket activity history (frontend) | ST-03 | HTS-041 | Stretch §2.10 | DONE |
-| HTS-043 | FE | Virtualized board rendering for large boards | ST-04 | HTS-026 | Stretch §2.10; FR-B10 | TODO |
+| HTS-043 | FE | Virtualized board rendering for large boards | ST-04 | HTS-026 | Stretch §2.10; FR-B10 | DONE |
 
 ### EP-10 Improvements & Tech Debt (optional, non-blocking — found during build)
 | ID | Type | Title | Story | Deps | Traceability | Status |

@@ -6,9 +6,10 @@
 // (dnd-kit): a drop optimistically moves the card and PATCHes its state, reverting with an error
 // toast on failure (FR-B5).
 
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { useVirtualizer } from '@tanstack/react-virtual';
 import {
   DndContext,
   KeyboardSensor,
@@ -40,6 +41,11 @@ import { useToast } from '../../components/toast/ToastProvider';
 
 /** Debounce delay (ms) for the title search so each keystroke doesn't fire a query (FR-B9). */
 const SEARCH_DEBOUNCE_MS = 250;
+
+/** Estimated rendered height of a card + gap (px), used to size the virtualized column (HTS-043). */
+const CARD_ESTIMATE_PX = 96;
+/** Extra rows rendered above/below the viewport so a drag or fast scroll doesn't reveal blanks. */
+const CARD_OVERSCAN = 6;
 
 export function BoardPage() {
   const navigate = useNavigate();
@@ -239,16 +245,10 @@ export function BoardPage() {
                   {column.length === 0 ? (
                     <p className="board__empty-col">No tickets</p>
                   ) : (
-                    <ul className="board__cards">
-                      {column.map((ticket) => (
-                        <li key={ticket.id}>
-                          <DraggableCard
-                            ticket={ticket}
-                            onOpen={() => navigate(`/tickets/${ticket.id}`)}
-                          />
-                        </li>
-                      ))}
-                    </ul>
+                    <VirtualCards
+                      tickets={column}
+                      onOpen={(ticketId) => navigate(`/tickets/${ticketId}`)}
+                    />
                   )}
                 </DroppableColumn>
               );
@@ -283,6 +283,57 @@ function DroppableColumn({
         </span>
       </div>
       {children}
+    </div>
+  );
+}
+
+/**
+ * Virtualized card list for one column (HTS-043, FR-B10). Only the cards in (or near) the viewport
+ * are mounted, so a column with hundreds/thousands of tickets stays cheap to render and scroll. The
+ * scroll container is the drag-and-drop auto-scroll target, and drop targets are the columns (not
+ * individual cards) — the drop handler resolves the moved card from the full ticket data, not the
+ * DOM — so drag-and-drop stays correct even across cards that aren't currently rendered.
+ */
+function VirtualCards({
+  tickets,
+  onOpen,
+}: {
+  tickets: Ticket[];
+  onOpen: (ticketId: string) => void;
+}) {
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const virtualizer = useVirtualizer({
+    count: tickets.length,
+    getScrollElement: () => scrollRef.current,
+    estimateSize: () => CARD_ESTIMATE_PX,
+    overscan: CARD_OVERSCAN,
+  });
+
+  return (
+    <div ref={scrollRef} className="board__column-scroll">
+      <ul
+        className="board__cards"
+        style={{ height: virtualizer.getTotalSize(), position: 'relative' }}
+      >
+        {virtualizer.getVirtualItems().map((item) => {
+          const ticket = tickets[item.index];
+          return (
+            <li
+              key={ticket.id}
+              className="board__card-item"
+              style={{
+                position: 'absolute',
+                top: 0,
+                left: 0,
+                width: '100%',
+                transform: `translateY(${item.start}px)`,
+              }}
+            >
+              <DraggableCard ticket={ticket} onOpen={() => onOpen(ticket.id)} />
+            </li>
+          );
+        })}
+      </ul>
     </div>
   );
 }
