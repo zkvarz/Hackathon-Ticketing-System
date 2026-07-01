@@ -65,3 +65,12 @@ export function useAuth(): AuthContextValue {
   if (!ctx) throw new Error('useAuth must be used within an AuthProvider');
   return ctx;
 }
+
+/**
+ * Current user without requiring an AuthProvider — returns null when there is none (e.g. isolated
+ * component tests). Handy for optional ownership checks (HTS-040: showing edit/delete only on the
+ * user's own comments) where a missing provider should degrade gracefully, not throw.
+ */
+export function useCurrentUser(): UserResponse | null {
+  return useContext(AuthContext)?.user ?? null;
+}
