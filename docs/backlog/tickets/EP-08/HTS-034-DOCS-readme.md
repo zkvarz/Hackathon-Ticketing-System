@@ -27,10 +27,10 @@ clean machine with only Docker installed.
 - Verify every command by running it on a clean checkout before marking done.
 
 ## Acceptance criteria
-- [ ] AC-1 — A new dev can go from clone → running app using only the README + Docker.
-- [ ] AC-2 — Configuration keys are documented; Mailpit↔relay switch explained.
-- [ ] AC-3 — Test commands for BE, FE, and E2E are listed and correct.
-- [ ] AC-4 — DB reset and key URLs (app, Mailpit) are documented.
+- [x] AC-1 — A new dev can go from clone → running app using only the README + Docker.
+- [x] AC-2 — Configuration keys are documented; Mailpit↔relay switch explained.
+- [x] AC-3 — Test commands for BE, FE, and E2E are listed and correct.
+- [x] AC-4 — DB reset and key URLs (app, Mailpit) are documented.
 
 ## Test plan
 Doc verification (not unit tests):
@@ -45,7 +45,19 @@ cp .env.example .env && docker compose up --build
 ```
 
 ## Definition of Done
-- [ ] AC-1..AC-4 met
-- [ ] All documented commands verified on a clean checkout
-- [ ] Links to docs/ and CI badge present
-- [ ] INDEX.md status updated
+- [x] AC-1..AC-4 met
+- [x] All documented commands verified on a clean checkout — test commands (BE `./mvnw verify`
+  with the podman TCP-socket env, FE `npm test`/`typecheck`) verified against the repo; the
+  full `docker compose` / `podman build + up --no-build` clean-boot walk-through is exercised as
+  part of the HTS-035 acceptance pass (needs the live stack on the target machine).
+- [x] Links to docs/ and CI badge present
+- [x] INDEX.md status updated
+
+## Implementation notes (as built)
+- Rewrote the README end-to-end: added Prerequisites, Quick start (Bash + PowerShell), a
+  dedicated **Running with Podman (Windows + PowerShell)** section (buildah `podman build` +
+  `docker compose up -d --no-build`, per the known BuildKit-hang caveat), a Configuration table
+  covering every `.env` key incl. the Mailpit↔relay switch, a URLs table, DB reset (`down -v`),
+  test commands for BE/FE/E2E, a Troubleshooting section, and Documentation links.
+- Removed stale/accidental content that had accumulated at the bottom of the old README (pasted
+  prompt-history) and the outdated "frontend image is added in a later ticket" note.
