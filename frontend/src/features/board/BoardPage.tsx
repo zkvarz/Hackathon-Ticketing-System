@@ -1,33 +1,50 @@
-// Kanban board (FR-B1/B2/B3/B8/B10, FR-S5, FR-B9; HTS-026 + HTS-030, wireframe image1). A team
-// selector drives the board query (HTS-025); tickets are grouped into the five workflow-ordered
-// columns (already modified-desc within a column from the server). Cards show type/title/epic and
-// open the ticket; a New-ticket button starts create. Filter/search controls (title search, type,
-// epic, clear + a result count) drive the server-side filtered query (HTS-029), combined with AND.
-// Drag-drop (HTS-028) comes later.
+// Kanban board (FR-B1/B2/B3/B4/B5/B6/B8/B10, FR-S5, FR-B9, FR-K7; HTS-026 + HTS-030 + HTS-028,
+// wireframe image1). A team selector drives the board query (HTS-025); tickets are grouped into
+// the five workflow-ordered columns (modified-desc within a column from the server). Cards show
+// type/title/epic and open the ticket; a New-ticket button starts create. Filter/search controls
+// drive the server-side filtered query (HTS-029). Cards are draggable between any two columns
+// (dnd-kit): a drop optimistically moves the card and PATCHes its state, reverting with an error
+// toast on failure (FR-B5).
 
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useQuery } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import {
+  DndContext,
+  KeyboardSensor,
+  PointerSensor,
+  closestCorners,
+  useDraggable,
+  useDroppable,
+  useSensor,
+  useSensors,
+  type DragEndEvent,
+} from '@dnd-kit/core';
 import { listTeams } from '../../api/teams';
 import { listEpics } from '../../api/epics';
 import {
+  changeTicketState,
   listTickets,
   TICKET_STATES,
   TICKET_STATE_LABELS,
   TICKET_TYPES,
   TICKET_TYPE_LABELS,
   type Ticket,
+  type TicketState,
   type TicketType,
 } from '../../api/tickets';
 import { Loading } from '../../components/Loading';
 import { Empty } from '../../components/Empty';
 import { ErrorState } from '../../components/ErrorState';
+import { useToast } from '../../components/toast/ToastProvider';
 
 /** Debounce delay (ms) for the title search so each keystroke doesn't fire a query (FR-B9). */
 const SEARCH_DEBOUNCE_MS = 250;
 
 export function BoardPage() {
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
+  const toast = useToast();
   const teamsQuery = useQuery({ queryKey: ['teams'], queryFn: listTeams });
   const teams = teamsQuery.data ?? [];
 
@@ -62,15 +79,60 @@ export function BoardPage() {
   };
   const hasActiveFilters = Boolean(typeFilter || epicFilter || debouncedQ);
 
+  // The exact key of the currently displayed board; the optimistic move mutates this cache entry.
+  const boardKey = ['tickets', teamId, typeFilter, epicFilter, debouncedQ] as const;
+
   const boardQuery = useQuery({
-    queryKey: ['tickets', teamId, typeFilter, epicFilter, debouncedQ],
+    queryKey: boardKey,
     queryFn: () => listTickets(teamId, filters),
     enabled: !!teamId,
   });
   const tickets = boardQuery.data ?? [];
 
-  // Changing the team resets the epic filter (a now-cross-team epic must not stay selected); the
-  // epic dropdown reloads for the new team.
+  // Optimistic state move (FR-B4/B5/B6). On drop: snapshot the board, move the card to the top of
+  // the target column locally, PATCH the state; on failure roll back and show an error toast; on
+  // success re-sync from the server (authoritative modified-desc order).
+  const moveMutation = useMutation({
+    mutationFn: ({ id, toState }: { id: string; toState: TicketState }) =>
+      changeTicketState(id, toState),
+    onMutate: async ({ id, toState }) => {
+      await queryClient.cancelQueries({ queryKey: boardKey });
+      const previous = queryClient.getQueryData<Ticket[]>(boardKey);
+      if (previous) {
+        const moved = previous.find((t) => t.id === id);
+        if (moved) {
+          const rest = previous.filter((t) => t.id !== id);
+          // Front of the array = top of its column (most-recently-modified).
+          queryClient.setQueryData<Ticket[]>(boardKey, [{ ...moved, state: toState }, ...rest]);
+        }
+      }
+      return { previous };
+    },
+    onError: (_err, _vars, context) => {
+      if (context?.previous) queryClient.setQueryData(boardKey, context.previous);
+      toast.error('Move failed — the card was returned to its column.');
+    },
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: ['tickets'] });
+    },
+  });
+
+  const sensors = useSensors(
+    // A small drag threshold so a plain click still opens the ticket (doesn't start a drag).
+    useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
+    useSensor(KeyboardSensor),
+  );
+
+  function onDragEnd(event: DragEndEvent) {
+    const { active, over } = event;
+    if (!over) return;
+    const toState = over.id as TicketState;
+    const card = tickets.find((t) => t.id === active.id);
+    if (!card || card.state === toState) return;
+    moveMutation.mutate({ id: String(active.id), toState });
+  }
+
+  // Changing the team resets the epic filter (a now-cross-team epic must not stay selected).
   function changeTeam(nextTeamId: string) {
     setTeamId(nextTeamId);
     setEpicFilter('');
@@ -168,40 +230,80 @@ export function BoardPage() {
       )}
 
       {boardQuery.data != null && !(filteredEmpty && hasActiveFilters) && (
-        <div className="board__columns">
-          {TICKET_STATES.map((state) => {
-            const column = tickets.filter((t) => t.state === state);
-            return (
-              <div key={state} className="board__column" aria-label={TICKET_STATE_LABELS[state]}>
-                <div className="board__column-head">
-                  <h2>{TICKET_STATE_LABELS[state]}</h2>
-                  <span className="board__count" aria-label={`${TICKET_STATE_LABELS[state]} count`}>
-                    {column.length}
-                  </span>
-                </div>
-                {column.length === 0 ? (
-                  <p className="board__empty-col">No tickets</p>
-                ) : (
-                  <ul className="board__cards">
-                    {column.map((ticket) => (
-                      <li key={ticket.id}>
-                        <TicketCard ticket={ticket} onOpen={() => navigate(`/tickets/${ticket.id}`)} />
-                      </li>
-                    ))}
-                  </ul>
-                )}
-              </div>
-            );
-          })}
-        </div>
+        <DndContext sensors={sensors} collisionDetection={closestCorners} onDragEnd={onDragEnd}>
+          <div className="board__columns">
+            {TICKET_STATES.map((state) => {
+              const column = tickets.filter((t) => t.state === state);
+              return (
+                <DroppableColumn key={state} state={state} count={column.length}>
+                  {column.length === 0 ? (
+                    <p className="board__empty-col">No tickets</p>
+                  ) : (
+                    <ul className="board__cards">
+                      {column.map((ticket) => (
+                        <li key={ticket.id}>
+                          <DraggableCard
+                            ticket={ticket}
+                            onOpen={() => navigate(`/tickets/${ticket.id}`)}
+                          />
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                </DroppableColumn>
+              );
+            })}
+          </div>
+        </DndContext>
       )}
     </section>
   );
 }
 
-function TicketCard({ ticket, onOpen }: { ticket: Ticket; onOpen: () => void }) {
+function DroppableColumn({
+  state,
+  count,
+  children,
+}: {
+  state: TicketState;
+  count: number;
+  children: React.ReactNode;
+}) {
+  const { setNodeRef, isOver } = useDroppable({ id: state });
   return (
-    <button type="button" className="ticket-card" onClick={onOpen}>
+    <div
+      ref={setNodeRef}
+      className={`board__column${isOver ? ' board__column--over' : ''}`}
+      aria-label={TICKET_STATE_LABELS[state]}
+    >
+      <div className="board__column-head">
+        <h2>{TICKET_STATE_LABELS[state]}</h2>
+        <span className="board__count" aria-label={`${TICKET_STATE_LABELS[state]} count`}>
+          {count}
+        </span>
+      </div>
+      {children}
+    </div>
+  );
+}
+
+function DraggableCard({ ticket, onOpen }: { ticket: Ticket; onOpen: () => void }) {
+  const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({
+    id: ticket.id,
+  });
+  const style = transform
+    ? { transform: `translate3d(${transform.x}px, ${transform.y}px, 0)` }
+    : undefined;
+  return (
+    <button
+      type="button"
+      ref={setNodeRef}
+      style={style}
+      className={`ticket-card${isDragging ? ' ticket-card--dragging' : ''}`}
+      onClick={onOpen}
+      {...listeners}
+      {...attributes}
+    >
       <span className="ticket-card__type" data-type={ticket.type}>
         {TICKET_TYPE_LABELS[ticket.type]}
       </span>

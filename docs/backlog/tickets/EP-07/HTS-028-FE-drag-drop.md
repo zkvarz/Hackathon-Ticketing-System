@@ -28,10 +28,10 @@ optimistically moving it, and on failure reverting it to the previous column wit
 - After success, the moved card sorts to the top of the target column (most-recently-modified).
 
 ## Acceptance criteria
-- [ ] AC-1 — Dragging a card to another column calls the state API and moves it on success.
-- [ ] AC-2 — On API failure, the card returns to its original column and an error is shown (FR-B5).
-- [ ] AC-3 — Cards can be moved between any two columns (FR-B6).
-- [ ] AC-4 — The change persists across a page refresh (state read back from server).
+- [x] AC-1 — Dragging a card to another column calls the state API and moves it on success.
+- [x] AC-2 — On API failure, the card returns to its original column and an error is shown (FR-B5).
+- [x] AC-3 — Cards can be moved between any two columns (FR-B6).
+- [x] AC-4 — The change persists across a page refresh (state read back from server).
 
 ## Test plan
 **Component (Vitest + RTL):**
@@ -49,7 +49,21 @@ npm run dev   # drag a card; simulate offline to see revert
 ```
 
 ## Definition of Done
-- [ ] AC-1..AC-4 met
-- [ ] Component + MSW tests pass (positive/negative/boundary)
-- [ ] Revert-on-failure verified (FR-B5)
-- [ ] INDEX.md status updated
+- [x] AC-1..AC-4 met
+- [x] Component + MSW tests pass (positive/negative/boundary) — `drag-drop.test.tsx` (4)
+- [x] Revert-on-failure verified (FR-B5) — optimistic snapshot rolled back + error toast
+- [x] INDEX.md status updated
+
+## Implementation notes (as built)
+- `@dnd-kit/core` (Pointer + Keyboard sensors; Pointer has a 5px activation distance so a plain
+  click still opens the ticket). Columns are droppables keyed by state; cards are draggables
+  keyed by ticket id.
+- `onDragEnd` runs an optimistic `useMutation`: `onMutate` snapshots the exact board cache key
+  and moves the card to the front of the target column (top = most-recently-modified); the PATCH
+  hits `/tickets/{id}/state`; `onError` restores the snapshot and shows a "Move failed — returned
+  to its column" toast; `onSuccess` invalidates `['tickets']` to re-sync the authoritative order
+  (AC-4 persistence).
+- Test approach: `@dnd-kit/core` is mocked to capture `onDragEnd` (jsdom can't measure layout for
+  a real pointer drag), so the real optimistic/revert logic is exercised via a stateful MSW board.
+- `ToastProvider` moved into the router root so the board (and `App.test` mounting `routes`) share
+  one toaster; `renderWithProviders` now supplies it for component tests.

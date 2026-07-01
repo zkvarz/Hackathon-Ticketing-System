@@ -5,6 +5,7 @@
 
 import { createBrowserRouter, Navigate, Outlet } from 'react-router-dom';
 import { AuthProvider } from './auth/AuthContext';
+import { ToastProvider } from './components/toast/ToastProvider';
 import { RequireAuth } from './auth/RequireAuth';
 import { AppLayout } from './layout/AppLayout';
 import { LoginPage } from './features/auth/LoginPage';
@@ -20,7 +21,9 @@ export const routes = [
   {
     element: (
       <AuthProvider>
-        <Outlet />
+        <ToastProvider>
+          <Outlet />
+        </ToastProvider>
       </AuthProvider>
     ),
     children: [

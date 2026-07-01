@@ -343,3 +343,17 @@ body {
   color: var(--muted);
   font-size: 0.9rem;
 }
+
+/* Drag-drop affordances (HTS-028). */
+.ticket-card {
+  cursor: grab;
+  touch-action: none;
+}
+.ticket-card--dragging {
+  opacity: 0.6;
+  cursor: grabbing;
+}
+.board__column--over {
+  outline: 2px dashed var(--accent);
+  outline-offset: -2px;
+}

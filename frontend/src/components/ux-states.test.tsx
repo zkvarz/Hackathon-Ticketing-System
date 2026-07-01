@@ -3,7 +3,7 @@
 // error and recovers on reset.
 
 import { describe, expect, it, vi } from 'vitest';
-import { render, screen, waitForElementToBeRemoved } from '@testing-library/react';
+import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { useState } from 'react';
 import { ApiError } from '../api/client';
@@ -71,18 +71,20 @@ describe('toaster', () => {
     );
   }
 
-  // Positive: a success toast appears (polite) then auto-dismisses.
+  // Positive: a success toast appears (polite) then auto-dismisses. The duration is comfortably
+  // large so the appear-assert can't race the dismissal; waitFor then observes the removal.
   it('shows a success toast and auto-dismisses it', async () => {
     render(
-      <ToastProvider duration={50}>
+      <ToastProvider duration={600}>
         <Harness />
       </ToastProvider>,
     );
     await userEvent.click(screen.getByRole('button', { name: 'ok' }));
 
-    const toast = await screen.findByRole('status');
-    expect(toast).toHaveTextContent('Saved');
-    await waitForElementToBeRemoved(() => screen.queryByText('Saved'));
+    expect(screen.getByRole('status')).toHaveTextContent('Saved');
+    await waitFor(() => expect(screen.queryByText('Saved')).not.toBeInTheDocument(), {
+      timeout: 2000,
+    });
   });
 
   // Positive/boundary: an error toast is assertive and can be dismissed manually.
