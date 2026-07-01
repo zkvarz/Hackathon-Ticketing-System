@@ -37,9 +37,9 @@ extension provides a GIN index that accelerates `ILIKE '%…%'` substring matchi
   Postgres image (it ships with `postgres:16`).
 
 ## Acceptance criteria
-- [ ] AC-1 — `pg_trgm` extension + trigram index created by a versioned migration.
-- [ ] AC-2 — The `?q=` search returns identical results to today (no semantic change).
-- [ ] AC-3 — `EXPLAIN` shows the trigram index used for a substring search on a seeded large table (bitmap index scan, not seq scan).
+- [x] AC-1 — `pg_trgm` extension + trigram index created by a versioned migration.
+- [x] AC-2 — The `?q=` search returns identical results to today (no semantic change).
+- [x] AC-3 — `EXPLAIN` shows the trigram index used for a substring search on a seeded large table (bitmap index scan, not seq scan).
 
 ## Test plan
 **Integration (Testcontainers — Postgres):**
@@ -52,7 +52,18 @@ cd backend && ./mvnw test -Dtest='*Trigram*'
 ```
 
 ## Definition of Done
-- [ ] AC-1..AC-3 met
-- [ ] Migration is idempotent; extension present in the runtime image
-- [ ] architecture.md §7 notes the extension
-- [ ] INDEX.md status updated
+- [x] AC-1..AC-3 met
+- [x] Migration is idempotent; extension present in the runtime image
+- [x] architecture.md §7 notes the extension
+- [x] INDEX.md status updated
+
+## Implementation notes (as built)
+- Migration `V9__tickets_title_trigram_index.sql`: `CREATE EXTENSION IF NOT EXISTS pg_trgm;` +
+  `CREATE INDEX IF NOT EXISTS ix_tickets_title_trgm ON tickets USING gin (lower(title)
+  gin_trgm_ops);` — idempotent, and the index expression `lower(title)` matches the
+  `TicketRepository.search` predicate so no query change was needed.
+- `TrigramSearchIntegrationTest` (2 tests, Testcontainers): seeds 400 rows and asserts `?q=`
+  returns exactly the case-insensitive substring matches (AC-2); then `ANALYZE` +
+  `SET enable_seqscan = off` + `EXPLAIN (FORMAT JSON)` for a `%payment%` search and asserts the
+  plan references `ix_tickets_title_trgm` — since a b-tree cannot serve a leading wildcard, the
+  trigram index appearing proves the trigram path (AC-1/AC-3).

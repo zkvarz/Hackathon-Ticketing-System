@@ -197,6 +197,9 @@ human-readable labels (FR §6).
 
 - **Flyway** versioned migrations in `backend/src/main/resources/db/migration` (FR-P8).
 - Schema auto-applies on backend boot; repeatable and idempotent.
+- **Extensions:** `pg_trgm` (ships with the `postgres:16` image) backs the board title
+  substring search — a GIN trigram index on `lower(title)` (`ix_tickets_title_trgm`, HTS-044)
+  so the `?q=` leading-wildcard `LIKE` uses a bitmap index scan instead of a seq scan (FR-B9/B10).
 - **No seed/sample data** on the default path (FR-P9, DoD-9); QA creates data via UI/API
   (DoD-10).
 - Referential integrity via FK constraints + server-side checks (FR-P3); delete restrictions
