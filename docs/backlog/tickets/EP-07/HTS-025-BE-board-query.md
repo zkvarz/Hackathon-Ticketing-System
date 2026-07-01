@@ -6,7 +6,7 @@
 | **Type** | BE |
 | **Epic** | EP-07 Kanban Board |
 | **Story** | ST-01 Board view |
-| **Status** | TODO |
+| **Status** | DONE |
 | **Depends on** | HTS-019 |
 | **Blocks** | HTS-026, HTS-029 |
 | **Traceability** | FR-B1, FR-B2, FR-B7; FR-B10; architecture.md §8 |
@@ -27,10 +27,10 @@ first, suitable for grouping into the five state columns and performant at ≥10
 - Response shape lets the FE group by `state` into the five columns (FR-B2).
 
 ## Acceptance criteria
-- [ ] AC-1 — Returns only the requested team's tickets.
-- [ ] AC-2 — Ordered by `modified_at` descending.
-- [ ] AC-3 — Includes the fields the board card needs (title, type, epic, state, modified).
-- [ ] AC-4 — Performs acceptably with 100+ tickets (indexed query).
+- [x] AC-1 — Returns only the requested team's tickets.
+- [x] AC-2 — Ordered by `modified_at` descending.
+- [x] AC-3 — Includes the fields the board card needs (title, type, epic, state, modified).
+- [x] AC-4 — Performs acceptably with 100+ tickets (indexed query).
 
 ## Test plan
 **Unit (JUnit 5 + Mockito):**
@@ -49,8 +49,8 @@ curl 'localhost:8080/api/tickets?teamId=<uuid>'
 ```
 
 ## Definition of Done
-- [ ] AC-1..AC-4 met
-- [ ] Unit tests (positive/negative/boundary) pass
-- [ ] Testcontainers integration (ordering + 100-ticket sanity) passes
-- [ ] Index present for `(team_id, modified_at)`
-- [ ] INDEX.md status updated
+- [x] AC-1..AC-4 met
+- [x] Unit tests (positive/negative/boundary) pass
+- [x] Testcontainers integration (ordering + 100-ticket sanity) passes
+- [x] Index present for `(team_id, modified_at)`
+- [x] INDEX.md status updated

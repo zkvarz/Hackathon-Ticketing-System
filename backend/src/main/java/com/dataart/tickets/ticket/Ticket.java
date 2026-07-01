@@ -132,6 +132,10 @@ public class Ticket extends BaseEntity {
         return epic == null ? null : epic.getId();
     }
 
+    public String getEpicTitle() {
+        return epic == null ? null : epic.getTitle();
+    }
+
     public TicketType getType() {
         return type;
     }

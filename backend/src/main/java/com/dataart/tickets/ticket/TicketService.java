@@ -45,7 +45,7 @@ public class TicketService {
 
     @Transactional(readOnly = true)
     public List<Ticket> listByTeam(UUID teamId) {
-        return tickets.findByTeam_IdOrderByModifiedAtDesc(teamId);
+        return tickets.findByTeam_IdOrderByModifiedAtDescIdDesc(teamId);
     }
 
     @Transactional(readOnly = true)
