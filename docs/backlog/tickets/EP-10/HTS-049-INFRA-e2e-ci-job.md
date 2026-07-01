@@ -6,7 +6,7 @@
 | **Type** | INFRA |
 | **Epic** | EP-10 Improvements & Tech Debt |
 | **Story** | ST-05 E2E (should-have) |
-| **Status** | TODO |
+| **Status** | DONE |
 | **Depends on** | HTS-036 |
 | **Blocks** | — |
 | **Priority** | Should-have (non-blocking) |
@@ -42,11 +42,11 @@ awkward to build locally builds cleanly there — the ideal place to run E2E con
   needed.
 
 ## Acceptance criteria
-- [ ] AC-1 — CI has an `e2e` job triggered on push/PR to `main`.
-- [ ] AC-2 — The job builds + starts the compose stack and waits for backend/frontend health before
-  testing (no arbitrary sleeps as the readiness gate).
-- [ ] AC-3 — The job runs the full Playwright suite; a spec failure fails the job.
-- [ ] AC-4 — The Playwright HTML report is uploaded as a build artifact (on pass and fail).
+- [x] AC-1 — CI has an `e2e` job triggered on push/PR to `main` (shares the workflow triggers).
+- [x] AC-2 — The job builds + starts the compose stack and polls `/api/health` + the SPA before
+  testing (readiness gate, not a fixed sleep).
+- [x] AC-3 — The job runs the full Playwright suite (`npm run e2e`); a spec failure fails the job.
+- [x] AC-4 — The Playwright HTML report is uploaded as a build artifact (`if: always()`).
 
 ## Test plan
 - **Positive:** on a healthy stack the job runs all specs green.
@@ -60,9 +60,21 @@ awkward to build locally builds cleanly there — the ideal place to run E2E con
 - Locally, the same sequence: `docker compose up --build -d` then `cd frontend && npm run e2e`.
 
 ## Definition of Done
-- [ ] `e2e` job added to `.github/workflows/ci.yml` (health-gated, artifact upload, teardown)
-- [ ] Workflow YAML validated (parses; steps ordered; working directories correct)
-- [ ] README "Running the tests" notes E2E runs in CI; INDEX.md updated
+- [x] `e2e` job added to `.github/workflows/ci.yml` (health-gated, artifact upload, teardown)
+- [x] Workflow YAML validated (parses via `js-yaml`; 3 jobs `backend`/`frontend`/`e2e`; 11 e2e steps)
+- [x] README "Running the tests" notes E2E runs in CI; INDEX.md updated
 
 ## Implementation notes (as built)
-_(filled on completion)_
+- **`.github/workflows/ci.yml`** gains a third job `e2e` (ubuntu-latest, parallel with the others):
+  checkout → `cp .env.example .env` → `docker compose up --build -d` → wait-for-ready (poll
+  `http://localhost:8080/api/health` for `UP`, then the SPA on :8081, `timeout`-bounded, no blind
+  sleeps) → `setup-node@v4` (Node 22, npm cache) → `npm ci` → `npx playwright install --with-deps
+  chromium` → `npm run e2e` → dump `docker compose logs` on failure → upload `frontend/playwright-report`
+  (`if: always()`) → `docker compose down -v`.
+- No Playwright config change needed: it already sets `retries: 1` and `forbidOnly` under `CI`.
+- On GitHub's ubuntu runners `docker compose up --build` works out of the box (no BuildKit/podman
+  hang — that caveat is specific to the local Windows/podman path), so CI uses the plain `--build`
+  flow rather than the local `podman build` + `--no-build` path.
+- **Validation:** the local suite is green against the composed stack (6/6, HTS-036 + HTS-048) and
+  the workflow mirrors those exact commands; YAML parsed clean with `js-yaml`. The job itself runs
+  on the next push/PR to `main`.

@@ -155,11 +155,13 @@ npm test        # vitest run
 npm run typecheck
 ```
 
-**End-to-end — Playwright critical paths (HTS-036, should-have).** Five specs run against the
+**End-to-end — Playwright critical paths (HTS-036, should-have).** Six specs run against the
 composed stack in a real browser: signup → verify (read from Mailpit's HTTP API) → login (DoD-1),
-ticket create/edit/delete (DoD-3), drag-persists-after-refresh (DoD-6), and a team
-delete-when-referenced guard. A `setup` project registers/verifies/logs in one shared user; each
-spec creates its own team/ticket.
+ticket create/edit/delete (DoD-3), drag-persists-after-refresh (DoD-6), epic create/edit/delete +
+referenced-guard (DoD-2), and a team delete-when-referenced guard. A `setup` project
+registers/verifies/logs in one shared user; each spec creates its own team/ticket. **This suite
+also runs in CI** — the `e2e` job (HTS-049) boots the compose stack and runs it on every push/PR to
+`main`, uploading the HTML report as a build artifact.
 
 ```bash
 # The stack MUST be built from current source — start it fresh so the containers aren't stale:
