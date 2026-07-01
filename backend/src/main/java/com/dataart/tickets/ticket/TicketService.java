@@ -43,9 +43,15 @@ public class TicketService {
         this.clock = clock;
     }
 
+    /**
+     * Board query for a team with optional filters (HTS-025 + HTS-029). All filters are optional
+     * and AND-combined; a blank {@code q} is treated as absent (not match-nothing). No filters =
+     * the full board, most-recently-modified first.
+     */
     @Transactional(readOnly = true)
-    public List<Ticket> listByTeam(UUID teamId) {
-        return tickets.findByTeam_IdOrderByModifiedAtDescIdDesc(teamId);
+    public List<Ticket> search(UUID teamId, TicketType type, UUID epicId, String q) {
+        String query = (q == null || q.isBlank()) ? null : q.trim();
+        return tickets.search(teamId, type, epicId, query);
     }
 
     @Transactional(readOnly = true)
@@ -112,7 +118,7 @@ public class TicketService {
     // FR-E7/FR-K5: a set epic must be in the ticket's (possibly newly-chosen) team. Checked against
     // the request's team+epic, so a team change that keeps a now-cross-team epic is rejected here.
     private void requireEpicSameTeam(Team team, Epic epic) {
-        if (epic != null && !epic.getTeamId().equals(team.getId())) {
+        if (epic != null && !java.util.Objects.equals(epic.getTeamId(), team.getId())) {
             throw new EpicTeamMismatchException();
         }
     }

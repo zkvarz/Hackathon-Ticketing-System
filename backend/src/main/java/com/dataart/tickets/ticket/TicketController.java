@@ -38,8 +38,11 @@ public class TicketController {
     }
 
     @GetMapping
-    public List<TicketResponse> list(@RequestParam("teamId") UUID teamId) {
-        return tickets.listByTeam(teamId).stream().map(TicketResponse::from).toList();
+    public List<TicketResponse> list(@RequestParam("teamId") UUID teamId,
+                                     @RequestParam(value = "type", required = false) TicketType type,
+                                     @RequestParam(value = "epicId", required = false) UUID epicId,
+                                     @RequestParam(value = "q", required = false) String q) {
+        return tickets.search(teamId, type, epicId, q).stream().map(TicketResponse::from).toList();
     }
 
     @GetMapping("/{id}")

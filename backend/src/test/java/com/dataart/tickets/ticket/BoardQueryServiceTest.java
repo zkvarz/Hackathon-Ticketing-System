@@ -32,13 +32,13 @@ class BoardQueryServiceTest {
     private UserRepository users;
 
     @Test
-    void listByTeamUsesOrderedTeamScopedQuery() {
+    void boardQueryUsesTeamScopedSearchWithNoFilters() {
         UUID teamId = UUID.randomUUID();
-        when(tickets.findByTeam_IdOrderByModifiedAtDescIdDesc(teamId)).thenReturn(List.of());
+        when(tickets.search(teamId, null, null, null)).thenReturn(List.of());
         TicketService service = new TicketService(tickets, teams, epics, users, Clock.systemUTC());
 
-        service.listByTeam(teamId);
+        service.search(teamId, null, null, null);
 
-        verify(tickets).findByTeam_IdOrderByModifiedAtDescIdDesc(teamId);
+        verify(tickets).search(teamId, null, null, null);
     }
 }

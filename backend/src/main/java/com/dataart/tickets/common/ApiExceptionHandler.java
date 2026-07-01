@@ -15,6 +15,7 @@ import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 
 import java.time.Instant;
 import java.util.List;
@@ -46,6 +47,14 @@ public class ApiExceptionHandler {
     public ResponseEntity<ApiError> handleUnreadable(HttpMessageNotReadableException ex) {
         return build(HttpStatus.BAD_REQUEST, "VALIDATION_FAILED",
                 "Request body is malformed or contains an invalid value.", List.of());
+    }
+
+    // A path/query parameter that can't be bound to its target type — e.g. an unknown ticket type
+    // in the board filter, or a malformed UUID → 400.
+    @ExceptionHandler(MethodArgumentTypeMismatchException.class)
+    public ResponseEntity<ApiError> handleTypeMismatch(MethodArgumentTypeMismatchException ex) {
+        return build(HttpStatus.BAD_REQUEST, "VALIDATION_FAILED",
+                "A request parameter has an invalid value.", List.of());
     }
 
     @ExceptionHandler(EmailAlreadyTakenException.class)
