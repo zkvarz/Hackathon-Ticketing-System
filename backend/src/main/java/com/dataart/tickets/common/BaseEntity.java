@@ -42,6 +42,16 @@ public abstract class BaseEntity {
         modifiedAt = Instant.now();
     }
 
+    /**
+     * Advance {@code modifiedAt} to an explicit instant. Used where a service must record a change
+     * time deterministically from an injected clock (e.g. the ticket "modified only on real
+     * change" rule, AMB-3/FR-K4) so the in-memory entity — and the response mapped from it — is
+     * immediately consistent, independent of the later {@link #onUpdate()} flush callback.
+     */
+    protected void markModified(Instant when) {
+        this.modifiedAt = when;
+    }
+
     public UUID getId() {
         return id;
     }

@@ -10,6 +10,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.DisabledException;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
@@ -35,6 +36,15 @@ public class ApiExceptionHandler {
                 .toList();
         return build(HttpStatus.BAD_REQUEST, "VALIDATION_FAILED",
                 "Request validation failed.", fieldErrors);
+    }
+
+    // Malformed JSON or an unparseable value (e.g. an unknown ticket type/state enum) → 400. The
+    // specific cause is not echoed back to avoid leaking internals; field-level detail comes from
+    // bean validation above where applicable.
+    @ExceptionHandler(HttpMessageNotReadableException.class)
+    public ResponseEntity<ApiError> handleUnreadable(HttpMessageNotReadableException ex) {
+        return build(HttpStatus.BAD_REQUEST, "VALIDATION_FAILED",
+                "Request body is malformed or contains an invalid value.", List.of());
     }
 
     @ExceptionHandler(EmailAlreadyTakenException.class)

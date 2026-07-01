@@ -6,7 +6,7 @@
 | **Type** | BE |
 | **Epic** | EP-05 Tickets |
 | **Story** | ST-01 Ticket CRUD |
-| **Status** | TODO |
+| **Status** | DONE |
 | **Depends on** | HTS-017 |
 | **Blocks** | HTS-020, HTS-021, HTS-023, HTS-025, HTS-027 |
 | **Traceability** | FR-K1..K4, FR-K6, FR-K8; AMB-1, AMB-3; architecture.md §6, §8 |
@@ -33,11 +33,11 @@ delete that cascades comments.
 - Delete cascades comments (DB `ON DELETE CASCADE` or service-level) (FR-K6).
 
 ## Acceptance criteria
-- [ ] AC-1 — Create persists all fields; `created_by`/`created_at` server-set; invalid enum → 400.
-- [ ] AC-2 — Get returns all fields including created-by/at and modified-at.
-- [ ] AC-3 — Editing a field updates `modified_at`; saving unchanged values does NOT advance it (AMB-3).
-- [ ] AC-4 — Delete requires the resource to exist (404 otherwise) and removes its comments.
-- [ ] AC-5 — Title/body non-empty and within limits; violations → 400 with field errors.
+- [x] AC-1 — Create persists all fields; `created_by`/`created_at` server-set; invalid enum → 400.
+- [x] AC-2 — Get returns all fields including created-by/at and modified-at.
+- [x] AC-3 — Editing a field updates `modified_at`; saving unchanged values does NOT advance it (AMB-3).
+- [x] AC-4 — Delete requires the resource to exist (404 otherwise) and removes its comments.
+- [x] AC-5 — Title/body non-empty and within limits; violations → 400 with field errors.
 
 ## Test plan
 **Unit (JUnit 5 + Mockito):**
@@ -57,7 +57,7 @@ curl -X POST localhost:8080/api/tickets -H 'Content-Type: application/json' \
 ```
 
 ## Definition of Done
-- [ ] AC-1..AC-5 met
-- [ ] Unit tests (positive/negative/boundary incl. modified-at no-op) pass
-- [ ] Testcontainers integration (enum constraints + comment cascade + UTC) passes
-- [ ] INDEX.md status updated
+- [x] AC-1..AC-5 met
+- [x] Unit tests (positive/negative/boundary incl. modified-at no-op) pass
+- [x] Testcontainers integration (enum constraints + comment cascade + UTC) passes
+- [x] INDEX.md status updated

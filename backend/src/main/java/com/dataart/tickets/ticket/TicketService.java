@@ -1,0 +1,96 @@
+package com.dataart.tickets.ticket;
+
+import com.dataart.tickets.auth.EmailNormalizer;
+import com.dataart.tickets.auth.User;
+import com.dataart.tickets.auth.UserRepository;
+import com.dataart.tickets.common.NotFoundException;
+import com.dataart.tickets.epic.Epic;
+import com.dataart.tickets.epic.EpicRepository;
+import com.dataart.tickets.team.Team;
+import com.dataart.tickets.team.TeamRepository;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.time.Clock;
+import java.util.List;
+import java.util.UUID;
+
+/**
+ * Ticket business logic (HTS-019, FR-K1..K4,K6,K8). All references (team, optional epic) and
+ * enums are validated server-side; {@code createdBy} is taken from the authenticated principal,
+ * never the client. Updates diff incoming vs stored so {@code modifiedAt} advances only on a real
+ * change (AMB-3); deletion cascades comments at the DB level (FR-K6).
+ *
+ * <p>Epic same-team enforcement + team-change epic-reset are deferred to HTS-021.
+ */
+@Service
+public class TicketService {
+
+    private final TicketRepository tickets;
+    private final TeamRepository teams;
+    private final EpicRepository epics;
+    private final UserRepository users;
+    private final Clock clock;
+
+    public TicketService(TicketRepository tickets, TeamRepository teams, EpicRepository epics,
+                         UserRepository users, Clock clock) {
+        this.tickets = tickets;
+        this.teams = teams;
+        this.epics = epics;
+        this.users = users;
+        this.clock = clock;
+    }
+
+    @Transactional(readOnly = true)
+    public List<Ticket> listByTeam(UUID teamId) {
+        return tickets.findByTeam_IdOrderByModifiedAtDesc(teamId);
+    }
+
+    @Transactional(readOnly = true)
+    public Ticket get(UUID id) {
+        return tickets.findById(id)
+                .orElseThrow(() -> new NotFoundException("Ticket not found: " + id));
+    }
+
+    @Transactional
+    public Ticket create(UUID teamId, UUID epicId, TicketType type, TicketState state,
+                         String title, String body, String creatorEmail) {
+        Team team = requireTeam(teamId);
+        Epic epic = resolveEpic(epicId);
+        User creator = users.findByEmail(EmailNormalizer.normalize(creatorEmail))
+                .orElseThrow(() -> new NotFoundException("User not found: " + creatorEmail));
+        TicketState initialState = state == null ? TicketState.NEW : state;
+        Ticket ticket = new Ticket(team, epic, type, initialState, title.trim(), body.trim(), creator);
+        return tickets.save(ticket);
+    }
+
+    @Transactional
+    public Ticket update(UUID id, UUID teamId, UUID epicId, TicketType type, TicketState state,
+                         String title, String body) {
+        Ticket ticket = get(id);
+        Team team = requireTeam(teamId);
+        Epic epic = resolveEpic(epicId);
+        // Field-level diffing: modified_at advances only if something actually changed (AMB-3).
+        ticket.applyChanges(team, epic, type, state, title.trim(), body.trim(), clock.instant());
+        return ticket;
+    }
+
+    @Transactional
+    public void delete(UUID id) {
+        Ticket ticket = get(id);
+        tickets.delete(ticket); // comments are removed by ON DELETE CASCADE (FR-K6)
+    }
+
+    private Team requireTeam(UUID teamId) {
+        return teams.findById(teamId)
+                .orElseThrow(() -> new NotFoundException("Team not found: " + teamId));
+    }
+
+    private Epic resolveEpic(UUID epicId) {
+        if (epicId == null) {
+            return null;
+        }
+        return epics.findById(epicId)
+                .orElseThrow(() -> new NotFoundException("Epic not found: " + epicId));
+    }
+}

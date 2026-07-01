@@ -16,9 +16,12 @@ Let authenticated users add non-empty comments to a ticket and list them oldest-
 author and created timestamp, without changing the ticket's `modified_at`.
 
 ## Scope
-- In scope: `Comment` entity + repo + migration (FK to ticket + author); `GET/POST
+- In scope: `Comment` entity + repo (mapping the existing `comments` table); `GET/POST
   /api/tickets/{id}/comments`; non-empty body validation; author from security context;
   chronological ordering; ensure adding a comment does NOT bump ticket `modified_at`.
+  > Note: the `comments` table and its `ON DELETE CASCADE` FK were created in HTS-019
+  > (migration `V7__comments.sql`) to back the ticket-delete cascade test (FR-K6); HTS-023 maps
+  > the entity onto it and adds no new table migration unless a column is required.
 - Out of scope: edit/delete comments (stretch HTS-039/040); FE (HTS-024).
 
 ## Technical approach
