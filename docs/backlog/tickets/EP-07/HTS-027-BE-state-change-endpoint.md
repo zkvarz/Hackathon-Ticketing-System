@@ -6,7 +6,7 @@
 | **Type** | BE |
 | **Epic** | EP-07 Kanban Board |
 | **Story** | ST-02 Drag-and-drop |
-| **Status** | TODO |
+| **Status** | DONE |
 | **Depends on** | HTS-019 |
 | **Blocks** | HTS-028 |
 | **Traceability** | FR-K7, FR-B4, FR-B6; FR-P1; AMB-3; architecture.md §8 |
@@ -28,10 +28,10 @@ validates the target state, persists immediately, and advances `modified_at`.
 - 404 if the ticket doesn't exist.
 
 ## Acceptance criteria
-- [ ] AC-1 — Valid state change persists immediately and advances `modified_at`.
-- [ ] AC-2 — Invalid/unknown state → 400 (standard error model).
-- [ ] AC-3 — Any-to-any transition is accepted (no sequential constraint).
-- [ ] AC-4 — Non-existent ticket → 404.
+- [x] AC-1 — Valid state change persists immediately and advances `modified_at`.
+- [x] AC-2 — Invalid/unknown state → 400 (standard error model).
+- [x] AC-3 — Any-to-any transition is accepted (no sequential constraint).
+- [x] AC-4 — Non-existent ticket → 404.
 
 ## Test plan
 **Unit (JUnit 5 + Mockito):**
@@ -49,8 +49,8 @@ curl -X PATCH localhost:8080/api/tickets/<id>/state -H 'Content-Type: applicatio
 ```
 
 ## Definition of Done
-- [ ] AC-1..AC-4 met
-- [ ] Unit tests (positive/negative/boundary) pass
-- [ ] Testcontainers integration (persist + modified-at) passes
-- [ ] Same-state PATCH behavior documented
-- [ ] INDEX.md status updated
+- [x] AC-1..AC-4 met
+- [x] Unit tests (positive/negative/boundary) pass
+- [x] Testcontainers integration (persist + modified-at) passes
+- [x] Same-state PATCH behavior documented
+- [x] INDEX.md status updated

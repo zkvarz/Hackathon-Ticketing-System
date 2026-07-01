@@ -79,6 +79,17 @@ public class TicketService {
         return ticket;
     }
 
+    /**
+     * Change only the workflow state (HTS-027, board drag-drop). Persists immediately and always
+     * advances {@code modified_at} so the board re-sorts (FR-K7, FR-B6). 404 if the ticket is gone.
+     */
+    @Transactional
+    public Ticket changeState(UUID id, TicketState newState) {
+        Ticket ticket = get(id);
+        ticket.changeState(newState, clock.instant());
+        return ticket;
+    }
+
     @Transactional
     public void delete(UUID id) {
         Ticket ticket = get(id);

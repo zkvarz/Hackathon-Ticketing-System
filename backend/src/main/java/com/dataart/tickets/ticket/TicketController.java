@@ -1,5 +1,6 @@
 package com.dataart.tickets.ticket;
 
+import com.dataart.tickets.ticket.dto.StateChangeRequest;
 import com.dataart.tickets.ticket.dto.TicketRequest;
 import com.dataart.tickets.ticket.dto.TicketResponse;
 import jakarta.validation.Valid;
@@ -8,6 +9,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
@@ -58,6 +60,11 @@ public class TicketController {
         Ticket ticket = tickets.update(id, request.teamId(), request.epicId(), request.type(),
                 request.state(), request.title(), request.body());
         return TicketResponse.from(ticket);
+    }
+
+    @PatchMapping("/{id}/state")
+    public TicketResponse changeState(@PathVariable UUID id, @Valid @RequestBody StateChangeRequest request) {
+        return TicketResponse.from(tickets.changeState(id, request.state()));
     }
 
     @DeleteMapping("/{id}")

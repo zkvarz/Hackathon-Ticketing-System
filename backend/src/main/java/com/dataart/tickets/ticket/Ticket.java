@@ -112,6 +112,17 @@ public class Ticket extends BaseEntity {
         return changed;
     }
 
+    /**
+     * Set the workflow state and advance {@code modifiedAt} unconditionally (HTS-027, FR-K7). Any
+     * target state is accepted (no sequential constraint, FR-B6). Unlike {@link #applyChanges},
+     * this always bumps the timestamp — a state PATCH is an explicit change request, so re-setting
+     * the current state still advances {@code modifiedAt} (documented AMB-3 exception).
+     */
+    public void changeState(TicketState newState, java.time.Instant now) {
+        this.state = newState;
+        markModified(now);
+    }
+
     private static UUID epicId(Epic epic) {
         return epic == null ? null : epic.getId();
     }
