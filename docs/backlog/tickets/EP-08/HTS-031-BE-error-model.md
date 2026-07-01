@@ -38,10 +38,10 @@ consistent, meaningful payload with the correct HTTP status — the contract the
   `UNAUTHENTICATED`, `FORBIDDEN`).
 
 ## Acceptance criteria
-- [ ] AC-1 — Validation failure returns 400 with per-field errors.
-- [ ] AC-2 — Not-found returns 404; conflict returns 409; forbidden/CSRF 403; unauthenticated 401.
-- [ ] AC-3 — All responses share the same JSON shape with a stable `code`.
-- [ ] AC-4 — Unexpected exceptions return 500 with no stack trace or secret in the body.
+- [x] AC-1 — Validation failure returns 400 with per-field errors.
+- [x] AC-2 — Not-found returns 404; conflict returns 409; forbidden/CSRF 403; unauthenticated 401.
+- [x] AC-3 — All responses share the same JSON shape with a stable `code`.
+- [x] AC-4 — Unexpected exceptions return 500 with no stack trace or secret in the body.
 
 ## Test plan
 **Unit (JUnit 5 + Mockito / Spring test):**
@@ -58,11 +58,23 @@ cd backend && ./mvnw test -Dtest='*ErrorHandling*'
 ```
 
 ## Definition of Done
-- [ ] AC-1..AC-4 met
-- [ ] Unit + integration tests pass (positive/negative/boundary)
-- [ ] `code` catalog documented (and referenced by FE HTS-032)
-- [ ] No sensitive data in error bodies
-- [ ] INDEX.md status updated
+- [x] AC-1..AC-4 met
+- [x] Unit + integration tests pass (positive/negative/boundary) — `ErrorHandlingUnitTest` (7),
+  `ErrorHandlingIntegrationTest` (5)
+- [x] `code` catalog documented (and referenced by FE HTS-032)
+- [x] No sensitive data in error bodies (catch-all 500 logs cause, returns generic message)
+- [x] INDEX.md status updated
+
+## Implementation notes (as built)
+- Consolidated into the single `common/ApiExceptionHandler` (no second advice). Added the gap
+  handlers: `MissingServletRequestParameterException` → 400 (names the missing param as a field
+  error), `NoHandlerFoundException`/`NoResourceFoundException` → 404 `NOT_FOUND`, and a catch-all
+  `Exception` → 500 `INTERNAL_ERROR` (logs the cause, returns a generic body).
+- `application.yml`: `spring.mvc.throw-exception-if-no-handler-found: true` +
+  `spring.web.resources.add-mappings: false` so unknown routes reach the advice instead of the
+  Whitelabel/resource 404.
+- The security filter chain's own 401/403 (fired before dispatch) remain produced by
+  `SecurityConfig`'s entry-point / access-denied handlers, in the same `ApiError` shape.
 
 ## Carry-over notes (from HTS-005/007/013/015/017/019/021/029 implementation)
 - A **focused** `common/ApiExceptionHandler` already exists and has grown as endpoints landed.

@@ -4,8 +4,9 @@ import java.time.Instant;
 import java.util.List;
 
 /**
- * Standard API error payload (architecture.md §8). Placeholder for the baseline — the global
- * exception handler that produces it is built in HTS-031.
+ * Standard API error payload (architecture.md §8, FR-P4). Produced for every 4xx/5xx by
+ * {@link ApiExceptionHandler} (and by the security filter chain's 401/403 handlers). The
+ * {@code code} is the stable, machine-readable contract the frontend branches on.
  *
  * @param timestamp  when the error occurred (UTC)
  * @param status     HTTP status code

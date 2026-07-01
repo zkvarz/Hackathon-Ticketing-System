@@ -17,6 +17,16 @@ spring:
   flyway:
     enabled: true
     locations: classpath:db/migration
+  mvc:
+    # Route an unknown path to our exception handler (→ 404 in the standard error model, HTS-031)
+    # instead of Boot's Whitelabel page.
+    throw-exception-if-no-handler-found: true
+  web:
+    resources:
+      # No static resources are served by the API; disabling the default mapping lets unmatched
+      # paths raise NoResourceFoundException (caught by ApiExceptionHandler) rather than 404-ing
+      # silently through the resource handler.
+      add-mappings: false
   mail:
     host: ${SMTP_HOST:localhost}
     port: ${SMTP_PORT:1025}
@@ -33,7 +43,7 @@ server:
       cookie:
         http-only: true
         same-site: lax
-        # secure: true is set via a non-local profile in HTS-033 (requires HTTPS).
+        # secure: true is enabled in the prod profile (application-prod.yml); local dev is HTTP.
 
 # Application-specific config (consumed by later tickets).
 app:
