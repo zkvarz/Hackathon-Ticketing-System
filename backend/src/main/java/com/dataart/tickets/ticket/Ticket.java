@@ -72,15 +72,15 @@ public class Ticket extends BaseEntity {
     }
 
     /**
-     * Apply an incoming edit, mutating only the fields that differ from the current values. When
-     * something actually changed, {@code modifiedAt} is advanced to {@code now} (AMB-3/FR-K4); an
-     * edit that submits identical values leaves the timestamp untouched.
+     * Apply an incoming edit, mutating only the fields that differ from the current values. The
+     * timestamp is not touched here: {@code modifiedAt} is owned by JPA Auditing (HTS-047), whose
+     * {@code @LastModifiedDate} callback fires only when this method actually dirties the row — so a
+     * no-op edit (identical values) leaves the timestamp untouched, satisfying AMB-3/FR-K4.
      *
      * @return {@code true} if any tracked field changed, {@code false} if it was a no-op.
      */
     public boolean applyChanges(Team newTeam, Epic newEpic, TicketType newType,
-                                TicketState newState, String newTitle, String newBody,
-                                java.time.Instant now) {
+                                TicketState newState, String newTitle, String newBody) {
         boolean changed = false;
         if (!Objects.equals(team.getId(), newTeam.getId())) {
             team = newTeam;
@@ -106,17 +106,16 @@ public class Ticket extends BaseEntity {
             body = newBody;
             changed = true;
         }
-        if (changed) {
-            markModified(now);
-        }
         return changed;
     }
 
     /**
      * Set the workflow state and advance {@code modifiedAt} unconditionally (HTS-027, FR-K7). Any
-     * target state is accepted (no sequential constraint, FR-B6). Unlike {@link #applyChanges},
-     * this always bumps the timestamp — a state PATCH is an explicit change request, so re-setting
-     * the current state still advances {@code modifiedAt} (documented AMB-3 exception).
+     * target state is accepted (no sequential constraint, FR-B6). Unlike {@link #applyChanges}, this
+     * always bumps the timestamp — a state PATCH is an explicit change request, so re-setting the
+     * current state still advances {@code modifiedAt} (documented AMB-3 exception). {@code now}
+     * dirties the row so the JPA-Auditing update runs even when the state is unchanged; auditing
+     * then writes the authoritative value from the same clock (HTS-047).
      */
     public void changeState(TicketState newState, java.time.Instant now) {
         this.state = newState;

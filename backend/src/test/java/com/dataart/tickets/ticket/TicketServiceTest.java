@@ -27,13 +27,13 @@ import static org.mockito.Mockito.when;
 
 /**
  * Unit tests for ticket business logic (HTS-019). Covers positive create/update, reference
- * validation (404s), the {@code createdBy}-from-principal rule, and the AMB-3 modified-at
- * semantics using a fixed clock: a real field change advances it, an identical save does not.
+ * validation (404s), the {@code createdBy}-from-principal rule, and the AMB-3 diffing contract: a
+ * real field change is applied and reported, an identical save is a no-op. The {@code modified_at}
+ * value itself is owned by JPA Auditing (HTS-047) and asserted in the integration tests.
  */
 @ExtendWith(MockitoExtension.class)
 class TicketServiceTest {
 
-    private static final Instant BASELINE = Instant.parse("2026-01-01T00:00:00Z");
     private static final Instant LATER = Instant.parse("2026-06-01T12:00:00Z");
 
     @Mock
@@ -136,9 +136,10 @@ class TicketServiceTest {
         verify(tickets, never()).delete(any());
     }
 
-    // Boundary (AMB-3): a real single-field change advances modified_at to the clock instant.
+    // AMB-3: a real field change is applied through the service (the modified_at advance itself is
+    // JPA Auditing's job, verified in TicketCrudIntegrationTest).
     @Test
-    void updateWithChangeAdvancesModifiedAt() {
+    void updateAppliesRealChange() {
         UUID id = UUID.randomUUID();
         UUID teamId = UUID.randomUUID();
         Team team = new Team("Payments");
@@ -146,16 +147,16 @@ class TicketServiceTest {
         when(tickets.findById(id)).thenReturn(Optional.of(ticket));
         when(teams.findById(teamId)).thenReturn(Optional.of(team));
 
-        Ticket result = service(LATER).update(id, teamId, null, TicketType.BUG, TicketState.NEW,
+        Ticket result = service(LATER).update(id, teamId, null, TicketType.BUG, TicketState.IN_PROGRESS,
                 "New title", "Body");
 
         assertThat(result.getTitle()).isEqualTo("New title");
-        assertThat(result.getModifiedAt()).isEqualTo(LATER);
+        assertThat(result.getState()).isEqualTo(TicketState.IN_PROGRESS);
     }
 
-    // Boundary (AMB-3): saving identical values is a no-op — modified_at stays at the baseline.
+    // AMB-3: saving identical values leaves the entity untouched (no dirtying → auditing won't bump).
     @Test
-    void updateWithNoChangeLeavesModifiedAt() {
+    void updateWithIdenticalValuesIsNoOp() {
         UUID id = UUID.randomUUID();
         UUID teamId = UUID.randomUUID();
         Team team = new Team("Payments");
@@ -166,15 +167,27 @@ class TicketServiceTest {
         Ticket result = service(LATER).update(id, teamId, null, TicketType.BUG, TicketState.NEW,
                 "Title", "Body");
 
-        assertThat(result.getModifiedAt()).isEqualTo(BASELINE);
+        assertThat(result.getTitle()).isEqualTo("Title");
+        assertThat(result.getState()).isEqualTo(TicketState.NEW);
     }
 
-    // A ticket whose current state was established at BASELINE: title "Title", body "Body",
-    // type BUG, state NEW, no epic. Built via applyChanges so modified_at starts at BASELINE.
+    // The AMB-3 diffing contract at the entity level: applyChanges reports whether anything changed.
+    @Test
+    void applyChangesReportsChangeVsNoOp() {
+        Team team = new Team("Payments");
+        Ticket ticket = existingTicket(team); // title "Title", body "Body", BUG, NEW
+
+        assertThat(ticket.applyChanges(team, null, TicketType.BUG, TicketState.NEW, "Title", "Body"))
+                .as("identical values → no-op").isFalse();
+        assertThat(ticket.applyChanges(team, null, TicketType.BUG, TicketState.DONE, "Title", "Body"))
+                .as("state changed → real change").isTrue();
+    }
+
+    // A ticket with title "Title", body "Body", type BUG, state NEW, no epic.
     private Ticket existingTicket(Team team) {
         Ticket ticket = new Ticket(team, null, TicketType.BUG, TicketState.NEW,
                 "seed", "seed", new User("u@example.com", "h"));
-        ticket.applyChanges(team, null, TicketType.BUG, TicketState.NEW, "Title", "Body", BASELINE);
+        ticket.applyChanges(team, null, TicketType.BUG, TicketState.NEW, "Title", "Body");
         return ticket;
     }
 }

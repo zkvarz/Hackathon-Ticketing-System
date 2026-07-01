@@ -163,7 +163,12 @@ port/credentials) — no code change (AMB-6 / A-4).
 ## 6. Data model
 
 Entities derived from spec §§3–7. All tables have UUIDv7 `id` (A-5) and UTC timestamps
-(A-6, FR-P5). `created_at`/`modified_at` are server-set.
+(A-6, FR-P5). `created_at`/`modified_at` are server-set and **single-sourced by Spring Data JPA
+Auditing** driven by the app `Clock` (HTS-047): `@CreatedDate`/`@LastModifiedDate` on `BaseEntity`
+draw from one `DateTimeProvider`, so the persisted instant equals the one the service returns and is
+deterministic under a fixed clock. `@LastModifiedDate` fires only when a real field change dirties
+the row (AMB-3); the ticket state PATCH forces the row dirty so it advances even on the same state
+(HTS-027 exception).
 
 ```
 USER ──< EMAIL_VERIFICATION_TOKEN

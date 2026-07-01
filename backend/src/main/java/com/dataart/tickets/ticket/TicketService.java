@@ -81,7 +81,8 @@ public class TicketService {
         Epic epic = resolveEpic(epicId);
         requireEpicSameTeam(team, epic);
         // Field-level diffing: modified_at advances only if something actually changed (AMB-3).
-        ticket.applyChanges(team, epic, type, state, title.trim(), body.trim(), clock.instant());
+        // The timestamp itself is set by JPA Auditing when the change dirties the row (HTS-047).
+        ticket.applyChanges(team, epic, type, state, title.trim(), body.trim());
         return ticket;
     }
 

@@ -29,7 +29,6 @@ import static org.mockito.Mockito.when;
 @ExtendWith(MockitoExtension.class)
 class StateChangeServiceTest {
 
-    private static final Instant BASELINE = Instant.parse("2026-01-01T00:00:00Z");
     private static final Instant LATER = Instant.parse("2026-06-01T12:00:00Z");
 
     @Mock
@@ -49,8 +48,9 @@ class StateChangeServiceTest {
         Team team = new Team("Payments");
         Ticket ticket = new Ticket(team, null, TicketType.BUG, TicketState.NEW,
                 "T", "B", new User("u@example.com", "h"));
-        // Establish a baseline modified_at distinct from the service clock.
-        ticket.applyChanges(team, null, TicketType.BUG, state, "T", "B", BASELINE);
+        // Put the ticket in the requested starting state (modified_at starts unset here — in a unit
+        // test no JPA-Auditing runs; changeState's explicit stamp is what these tests assert on).
+        ticket.applyChanges(team, null, TicketType.BUG, state, "T", "B");
         return ticket;
     }
 

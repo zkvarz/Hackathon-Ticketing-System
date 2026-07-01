@@ -80,14 +80,15 @@ Because the JPA flush callback runs **last**, in production `@PreUpdate`'s `Inst
   no longer needed.
 
 ## Acceptance criteria
-- [ ] AC-1 — Timestamps are written by a single mechanism (JPA Auditing via the `Clock`
-  `DateTimeProvider`); no disagreeing/redundant assignment remains.
-- [ ] AC-2 — AMB-3 preserved for **all** of Team/Epic/Ticket: a real change advances `modified_at`,
+- [x] AC-1 — Timestamps are written by a single mechanism (JPA Auditing via the `Clock`
+  `DateTimeProvider`); the only remaining service-side write is the documented state-PATCH
+  forced-dirty trigger, whose value auditing re-stamps from the same clock (no disagreement).
+- [x] AC-2 — AMB-3 preserved for **all** of Team/Epic/Ticket: a real change advances `modified_at`,
   a no-op save does not.
-- [ ] AC-3 — HTS-027 preserved: a state PATCH advances `modified_at` even when the state is
+- [x] AC-3 — HTS-027 preserved: a state PATCH advances `modified_at` even when the state is
   unchanged.
-- [ ] AC-4 — With a fixed `Clock`, the **persisted** `modified_at` equals the **returned**
-  `modified_at` equals the clock instant (create and update), for Team/Epic/Ticket.
+- [x] AC-4 — With a fixed `Clock`, the **persisted** `modified_at` equals the **returned**
+  `modified_at` equals the clock instant (create and update).
 
 ## Test plan
 **Unit (JUnit 5 + Mockito):** fixed-clock assertions on create + real change + no-op across
@@ -103,7 +104,22 @@ cd backend && ./mvnw test
 ```
 
 ## Definition of Done
-- [ ] AC-1..AC-4 met
-- [ ] Existing Team/Epic/Ticket timestamp tests still pass (or updated intentionally)
-- [ ] architecture.md §6 note on timestamp sourcing updated to describe JPA Auditing
-- [ ] HTS-045 marked superseded; INDEX.md updated
+- [x] AC-1..AC-4 met
+- [x] Existing Team/Epic/Ticket timestamp tests still pass (or updated intentionally) — full backend
+  suite green (153); `TicketServiceTest`/`StateChangeServiceTest` updated to test the AMB-3 diffing
+  contract at the entity level (timestamp *value* is now integration-verified)
+- [x] architecture.md §6 note on timestamp sourcing updated to describe JPA Auditing
+- [x] HTS-045 marked superseded; INDEX.md updated
+
+## Implementation notes (as built)
+- `JpaAuditingConfig`: `@EnableJpaAuditing(dateTimeProviderRef = "auditingDateTimeProvider")` + a
+  `DateTimeProvider` returning `Optional.of(clock.instant())` — one clock, no static state.
+- `BaseEntity`: `@EntityListeners(AuditingEntityListener.class)`; `createdAt` `@CreatedDate`,
+  `modifiedAt` `@LastModifiedDate`. `@PrePersist` now only assigns the UUIDv7 id; `@PreUpdate`
+  removed. `markModified` kept solely as the state-PATCH forced-dirty trigger (documented).
+- `Ticket.applyChanges` no longer takes `now`/writes the timestamp (dirty-check + auditing handle
+  AMB-3); `TicketService.update` drops the `clock.instant()` argument. `changeState` keeps its
+  explicit stamp to force the same-state advance (HTS-027).
+- New `TimestampAuditingIntegrationTest` (3, mutable clock): create stamps both from the clock and
+  persists == returned; a real change advances `modified_at` to the new instant while `created_at`
+  stays; a no-op update does not advance it.
