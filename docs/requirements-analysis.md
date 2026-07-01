@@ -273,7 +273,8 @@ Auth and ID strategy are now **decided** (previously open): **server-side sessio
 
 > **Status update.** AMB-1, 2, 3, 4, 5, 8, 9, 10 are **confirmed** — their proposed defaults
 > are now binding requirements. AMB-6 is **resolved** (Mailpit, see §A-4). AMB-7 is
-> **resolved** below (auth-mechanism decision in §4.3 / A-3).
+> **resolved** below (auth-mechanism decision in §4.3 / A-3). AMB-11 was **discovered during
+> build** (HTS-019/021/023) and resolved below (authorization model).
 
 | ID | Ambiguity | Impact | Resolution (binding) |
 |----|-----------|--------|----------------------|
@@ -287,6 +288,7 @@ Auth and ID strategy are now **decided** (previously open): **server-side sessio
 | AMB-8 | "Created by" is required on tickets, but comment **author** display name source is unspecified (email? a separate display name?). | UI, user model. | **Confirmed.** Display the user's email as author identity (no separate profile in scope). |
 | AMB-9 | Team rename uniqueness on collision, and case-insensitive comparison locale, are not specified. | Validation correctness. | **Confirmed.** Enforce CI uniqueness using a normalized (lower-cased, trimmed) form; document the normalization. |
 | AMB-10 | Filtering/search may be client- or server-side — interacts with the ≥100-ticket bar and pagination, which is not mentioned. | Architecture, performance. | **Confirmed.** Server-side filtering/search; no pagination unless needed for the 100-ticket bar. |
+| AMB-11 | FR-T6 grants all verified users full access to all **teams**, but the spec is silent on per-resource authorization for **epics, tickets, and comments** — is there any ownership/membership check? | Authorization model, API behavior, tests. | **Resolved (build-discovered, HTS-019/021/023).** Intentionally **unrestricted**: any verified user may read and manage any team, epic, ticket, and comment. There is no ownership / membership / tenancy check anywhere — consistent with FR-T6 and the explicitly out-of-scope "roles & membership" (§1.2). **Authentication (FR-A12) is the only access gate.** If multi-tenancy or roles are ever introduced, this becomes a breaking change across every list/get/update/delete endpoint and must be re-analysed here first. |
 
 ---
 
@@ -348,10 +350,11 @@ Auth and ID strategy are now **decided** (previously open): **server-side sessio
 - Every FR/NFR ID above should map to: a migration/model, an API endpoint, a UI element,
   and at least one automated test where applicable. The DoD items (DoD-1…DoD-10) are the
   minimum end-to-end acceptance set.
-- **All ambiguities (AMB-1…AMB-10) and open questions (Q-1…Q-9) are now resolved** — each
+- **All ambiguities (AMB-1…AMB-11) and open questions (Q-1…Q-9) are now resolved** — each
   by an explicit decision or a confirmed default recorded in §4.3/§5/§6. Implementation is
   unblocked. Any *new* ambiguity discovered during build must be added here and resolved the
-  same way (explicit decision or agreed default) rather than guessed.
+  same way (explicit decision or agreed default) rather than guessed. (AMB-11 is an example:
+  the authorization model was pinned down when the ticket/comment endpoints landed.)
 
 _This analysis is derived solely from `docs/requirements.md` and the wireframes; where the
 source is silent, that silence is recorded above rather than resolved by guessing._

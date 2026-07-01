@@ -28,6 +28,7 @@ come from [`../requirements-analysis.md`](../requirements-analysis.md).
 | EP-07 | Kanban Board | Board view, drag-drop persist/revert, filters & search | TODO |
 | EP-08 | Cross-cutting & Delivery | Error model, UX states, security, README, DoD, E2E | TODO |
 | EP-09 | Stretch (optional) | Password reset, comment edit/delete, history, virtualization | TODO |
+| EP-10 | Improvements & Tech Debt (optional) | Perf + internal-quality items found during build | TODO |
 
 ---
 
@@ -112,6 +113,12 @@ come from [`../requirements-analysis.md`](../requirements-analysis.md).
 | HTS-042 | FE | Ticket activity history (frontend) | ST-03 | HTS-041 | Stretch §2.10 | TODO |
 | HTS-043 | FE | Virtualized board rendering for large boards | ST-04 | HTS-026 | Stretch §2.10; FR-B10 | TODO |
 
+### EP-10 Improvements & Tech Debt (optional, non-blocking — found during build)
+| ID | Type | Title | Story | Deps | Traceability | Status |
+|----|------|-------|-------|------|--------------|--------|
+| HTS-044 | BE | Trigram (pg_trgm GIN) index for title substring search | ST-01 | HTS-029 | FR-B9,B10; AMB-4,AMB-10 | TODO |
+| HTS-045 | BE | Single-source modified_at (clock-driven, drop dual write) | ST-02 | HTS-019 | AMB-3; FR-K4,P5 | TODO |
+
 ---
 
 ## Suggested build order
@@ -122,5 +129,6 @@ come from [`../requirements-analysis.md`](../requirements-analysis.md).
 4. **EP-07** (board depends on tickets).
 5. **EP-08** (error model/security/docs/DoD; some can run in parallel from the start).
 6. **EP-09** (only if time allows).
+7. **EP-10** (optional; perf/tech-debt found during build — pick up only after mandatory scope is green).
 
 Within a story, build **BE before FE** (FE depends on the BE contract).

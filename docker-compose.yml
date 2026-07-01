@@ -40,8 +40,7 @@ services:
     networks:
       - app
 
-  # Real image is added in HTS-002 (Spring Boot baseline). The build context and
-  # placeholder Dockerfile exist now so `docker compose config` validates the full stack.
+  # Spring Boot API (HTS-002+): multi-stage Dockerfile, runs Flyway on boot, serves /api.
   backend:
     build: ./backend
     image: hts-backend:dev
@@ -68,7 +67,8 @@ services:
     networks:
       - app
 
-  # Real image is added in HTS-003 (React/Vite baseline, nginx-served).
+  # React/Vite SPA (HTS-003+): built to static assets, served by nginx with SPA fallback and an
+  # /api reverse-proxy to the backend (same-origin → simple session cookies + CSRF).
   frontend:
     build: ./frontend
     depends_on:
