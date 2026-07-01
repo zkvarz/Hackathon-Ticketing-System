@@ -14,7 +14,7 @@ single `docker compose up --build` — no host-installed runtimes required beyon
 - [Quick start](#quick-start) · [Running with Podman](#running-with-podman-optional)
 - [Prerequisites](#prerequisites) · [Configuration](#configuration) · [URLs](#urls)
 - [Resetting the database](#resetting-the-database) · [Running the tests](#running-the-tests)
-- [Troubleshooting](#troubleshooting) · [Documentation](#documentation)
+- [API documentation](#api-documentation-openapi--swagger) · [Troubleshooting](#troubleshooting) · [Documentation](#documentation)
 - [Requirements provenance](#requirements-provenance) · [Tech stack](#tech-stack--architecture-decisions)
 
 ## Prerequisites
@@ -204,6 +204,32 @@ npm run e2e                         # = playwright test  (npm run e2e:report to 
 Targets default to `http://localhost:8081` (app) and `http://localhost:8025` (Mailpit); override
 with `PW_BASE_URL` / `MAILPIT_URL` if your ports differ. The suite assumes the stack is already up —
 it does not start it.
+
+## API documentation (OpenAPI / Swagger)
+
+The backend publishes a **code-first OpenAPI 3 spec** (springdoc, HTS-050) — generated from the
+controllers, no hand-maintained YAML. In dev the stack exposes:
+
+| What | URL |
+|------|-----|
+| Interactive docs (Swagger UI) | http://localhost:8080/swagger-ui/index.html |
+| Raw spec (JSON) | http://localhost:8080/v3/api-docs |
+
+> These are **dev-only**: the `prod` profile disables both, and they're dropped from the security
+> allowlist when disabled. (They're served on the backend port directly — nginx only proxies `/api`.)
+
+The frontend's API types are **generated from this spec**, so the SPA can't silently drift from the
+backend. With the stack up:
+
+```bash
+cd frontend
+npm run gen:api        # openapi-typescript /v3/api-docs → src/api/schema.d.ts
+npm run typecheck      # fails if the backend contract changed under the frontend
+```
+
+`src/api/schema.d.ts` is committed, so builds don't need the backend; regenerate it whenever the
+API changes. The domain response types (`Ticket`, `Team`, `Epic`, …) and ticket enums are derived
+from it (`frontend/src/api/*.ts`).
 
 ## Troubleshooting
 

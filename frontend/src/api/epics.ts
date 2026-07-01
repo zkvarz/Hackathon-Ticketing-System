@@ -1,16 +1,10 @@
 // Epic API calls (architecture.md §8). Typed wrappers over the shared client.
 
 import { apiClient } from './client';
+import type { components } from './schema';
 
-export interface Epic {
-  id: string;
-  teamId: string;
-  title: string;
-  description: string | null;
-  ticketCount: number;
-  createdAt: string;
-  modifiedAt: string;
-}
+// Response derived from the OpenAPI spec (HTS-050); the request body stays hand-written.
+export type Epic = components['schemas']['EpicResponse'];
 
 export interface EpicInput {
   title: string;

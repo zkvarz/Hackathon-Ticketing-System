@@ -4,16 +4,10 @@
 // human-readable strings captured at change time (null for the creation entry).
 
 import { apiClient } from './client';
+import type { components } from './schema';
 
-export interface TicketActivity {
-  id: string;
-  ticketId: string;
-  actorEmail: string;
-  field: string;
-  oldValue: string | null;
-  newValue: string | null;
-  at: string;
-}
+// Derived from the OpenAPI spec (HTS-050) — mirrors the backend TicketActivityResponse.
+export type TicketActivity = components['schemas']['TicketActivityResponse'];
 
 export function listActivity(ticketId: string) {
   return apiClient.get<TicketActivity[]>(`/tickets/${ticketId}/activity`);

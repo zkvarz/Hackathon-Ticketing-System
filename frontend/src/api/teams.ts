@@ -1,15 +1,10 @@
 // Team API calls (architecture.md §8). Typed wrappers over the shared client.
 
 import { apiClient } from './client';
+import type { components } from './schema';
 
-export interface Team {
-  id: string;
-  name: string;
-  epicCount: number;
-  ticketCount: number;
-  createdAt: string;
-  modifiedAt: string;
-}
+// Derived from the OpenAPI spec (HTS-050) — mirrors the backend TeamResponse exactly.
+export type Team = components['schemas']['TeamResponse'];
 
 export function listTeams() {
   return apiClient.get<Team[]>('/teams');

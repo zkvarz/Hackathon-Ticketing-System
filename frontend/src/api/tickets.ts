@@ -3,30 +3,16 @@
 // sends/receives the canonical wire values.
 
 import { apiClient } from './client';
+import type { components } from './schema';
 
-export type TicketType = 'bug' | 'feature' | 'fix';
-export type TicketState =
-  | 'new'
-  | 'ready_for_implementation'
-  | 'in_progress'
-  | 'ready_for_acceptance'
-  | 'done';
+// Response shape + the enum unions are derived from the OpenAPI spec (HTS-050) — the enum values
+// come straight from the backend's @JsonValue wire strings, so they can't drift.
+export type Ticket = components['schemas']['TicketResponse'];
+export type TicketType = Ticket['type'];
+export type TicketState = Ticket['state'];
 
-export interface Ticket {
-  id: string;
-  teamId: string;
-  epicId: string | null;
-  epicTitle: string | null;
-  type: TicketType;
-  state: TicketState;
-  title: string;
-  body: string;
-  createdBy: string;
-  createdByEmail: string;
-  createdAt: string;
-  modifiedAt: string;
-}
-
+// The request body stays hand-written: the client decides how to send an absent epic (null),
+// which differs from the server's optional-field shape.
 export interface TicketInput {
   teamId: string;
   epicId?: string | null;

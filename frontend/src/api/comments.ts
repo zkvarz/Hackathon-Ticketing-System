@@ -3,16 +3,10 @@
 // email is shown as identity (AMB-8); editedAt is null until the author edits (HTS-039).
 
 import { apiClient } from './client';
+import type { components } from './schema';
 
-export interface Comment {
-  id: string;
-  ticketId: string;
-  authorId: string;
-  authorEmail: string;
-  body: string;
-  createdAt: string;
-  editedAt: string | null;
-}
+// Derived from the OpenAPI spec (HTS-050) — mirrors the backend CommentResponse (editedAt nullable).
+export type Comment = components['schemas']['CommentResponse'];
 
 export function listComments(ticketId: string) {
   return apiClient.get<Comment[]>(`/tickets/${ticketId}/comments`);
