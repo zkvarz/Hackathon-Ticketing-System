@@ -187,7 +187,7 @@ TICKET ──< COMMENT     (cascade delete — FR-K6)
 | **Team** | id, name, created_at, modified_at | name unique on **lower(trim(name))** (FR-T4); delete blocked if referenced (FR-T5 → 409). |
 | **Epic** | id, team_id, title, description (null), created_at, modified_at | title non-empty trimmed (FR-E5); team_id immutable (FR-E2); delete blocked if referenced (FR-E8 → 409). |
 | **Ticket** | id, team_id, type, state, epic_id (null), title, body, created_at, modified_at, created_by | type ∈ {bug,feature,fix}; state ∈ 5 values; epic_id same team (FR-E7); modified-at advances only on real change (AMB-3). |
-| **Comment** | id, ticket_id, author_id, body, created_at | body non-empty (FR-C3); immutable (FR-C6); does not bump ticket.modified_at (FR-C5). |
+| **Comment** | id, ticket_id, author_id, body, created_at, edited_at (null) | body non-empty (FR-C3); does not bump ticket.modified_at (FR-C5). Immutable by default (FR-C6); the EP-09 stretch (HTS-039) relaxes this so the **author** may edit/delete their own comment — edit stamps `edited_at`, non-author → 403. |
 
 **Field limits (AMB-1, binding):** password ≤128, title ≤200, body ≤10000 chars — enforced
 server-side and reflected in column types.

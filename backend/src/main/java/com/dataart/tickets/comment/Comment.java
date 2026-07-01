@@ -17,9 +17,11 @@ import java.util.UUID;
 
 /**
  * Comment (architecture.md §6). Belongs to a ticket and an author; carries a body and a server-set
- * created timestamp. Comments are immutable (FR-C6) and do not extend {@code BaseEntity} because
- * they have no {@code modified_at} — a comment never changes and adding one must not touch the
- * ticket's {@code modified_at} (FR-C5). Deleted with their ticket via DB cascade (FR-K6).
+ * created timestamp. Comments do not extend {@code BaseEntity} because they have no
+ * {@code modified_at} — editing a comment must not touch the ticket's {@code modified_at} (FR-C5).
+ * Originally immutable (FR-C6); the EP-09 stretch (HTS-039) relaxes that so an author may edit or
+ * delete their own comment, recording {@code edited_at} on edit. Deleted with their ticket via DB
+ * cascade (FR-K6).
  */
 @Entity
 @Table(name = "comments")
@@ -42,6 +44,10 @@ public class Comment {
 
     @Column(name = "created_at", nullable = false, updatable = false)
     private Instant createdAt;
+
+    // Null until the author first edits the comment (HTS-039). A non-null value marks it "edited".
+    @Column(name = "edited_at")
+    private Instant editedAt;
 
     protected Comment() {
         // JPA
@@ -87,5 +93,19 @@ public class Comment {
 
     public Instant getCreatedAt() {
         return createdAt;
+    }
+
+    public Instant getEditedAt() {
+        return editedAt;
+    }
+
+    /**
+     * Replace the body and stamp {@code edited_at} (HTS-039). Caller passes the trimmed body and the
+     * clock instant. Only the comment is mutated — the ticket's {@code modified_at} is untouched
+     * (FR-C5).
+     */
+    public void edit(String newBody, Instant editedAt) {
+        this.body = newBody;
+        this.editedAt = editedAt;
     }
 }

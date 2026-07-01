@@ -2,6 +2,7 @@ package com.dataart.tickets.common;
 
 import com.dataart.tickets.auth.EmailAlreadyTakenException;
 import com.dataart.tickets.auth.TokenInvalidException;
+import com.dataart.tickets.comment.CommentAccessDeniedException;
 import com.dataart.tickets.epic.EpicHasTicketsException;
 import com.dataart.tickets.epic.EpicTeamImmutableException;
 import com.dataart.tickets.team.TeamHasChildrenException;
@@ -109,6 +110,13 @@ public class ApiExceptionHandler {
     @ExceptionHandler(NotFoundException.class)
     public ResponseEntity<ApiError> handleNotFound(NotFoundException ex) {
         return build(HttpStatus.NOT_FOUND, "NOT_FOUND", ex.getMessage(), List.of());
+    }
+
+    // Editing/deleting a comment you did not author → 403 (HTS-039). Reuses the FORBIDDEN code the
+    // FE already treats as "not permitted", distinct from the 401 unauthenticated path.
+    @ExceptionHandler(CommentAccessDeniedException.class)
+    public ResponseEntity<ApiError> handleCommentAccessDenied(CommentAccessDeniedException ex) {
+        return build(HttpStatus.FORBIDDEN, "FORBIDDEN", ex.getMessage(), List.of());
     }
 
     @ExceptionHandler(TeamNameTakenException.class)

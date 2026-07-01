@@ -10,6 +10,9 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.time.Clock;
+import java.time.Instant;
+import java.time.ZoneOffset;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -22,11 +25,14 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 /**
- * Unit tests for comment business logic (HTS-023). Covers author-from-principal, body trimming,
- * and the 404s for a missing ticket or principal.
+ * Unit tests for comment business logic (HTS-023 + HTS-039). Covers author-from-principal, body
+ * trimming, the 404s for a missing ticket/principal, and the stretch edit/delete authorization:
+ * author edits stamp {@code edited_at}; non-authors get 403; missing/wrong-ticket → 404.
  */
 @ExtendWith(MockitoExtension.class)
 class CommentServiceTest {
+
+    private static final Instant EDIT_TIME = Instant.parse("2026-06-30T12:00:00Z");
 
     @Mock
     private CommentRepository comments;
@@ -36,7 +42,14 @@ class CommentServiceTest {
     private UserRepository users;
 
     private CommentService service() {
-        return new CommentService(comments, tickets, users);
+        return new CommentService(comments, tickets, users, Clock.fixed(EDIT_TIME, ZoneOffset.UTC));
+    }
+
+    /** A saved comment authored by {@code authorEmail} on a ticket whose id is {@code ticketId}. */
+    private Comment ownedComment(UUID ticketId, String authorEmail) {
+        Ticket ticket = mock(Ticket.class);
+        when(ticket.getId()).thenReturn(ticketId);
+        return new Comment(ticket, new User(authorEmail, "h"), "Original body");
     }
 
     // Positive: add resolves the ticket + author, trims the body, and sets the author from the
@@ -86,5 +99,94 @@ class CommentServiceTest {
         when(tickets.findById(ticketId)).thenReturn(Optional.empty());
 
         assertThatThrownBy(() -> service().list(ticketId)).isInstanceOf(NotFoundException.class);
+    }
+
+    // AC-1 (positive): the author edits — body is trimmed and edited_at is stamped from the clock.
+    @Test
+    void updateByAuthorTrimsBodyAndStampsEditedAt() {
+        UUID ticketId = UUID.randomUUID();
+        UUID commentId = UUID.randomUUID();
+        Comment comment = ownedComment(ticketId, "u@example.com");
+        when(comments.findById(commentId)).thenReturn(Optional.of(comment));
+
+        Comment result = service().update(ticketId, commentId, "  Edited body  ", "u@example.com");
+
+        assertThat(result.getBody()).isEqualTo("Edited body");
+        assertThat(result.getEditedAt()).isEqualTo(EDIT_TIME);
+    }
+
+    // AC-3 (negative): a non-author editing → 403; the body/edited_at are untouched.
+    @Test
+    void updateByNonAuthorThrowsForbidden() {
+        UUID ticketId = UUID.randomUUID();
+        UUID commentId = UUID.randomUUID();
+        Comment comment = ownedComment(ticketId, "owner@example.com");
+        when(comments.findById(commentId)).thenReturn(Optional.of(comment));
+
+        assertThatThrownBy(() -> service().update(ticketId, commentId, "hijack", "intruder@example.com"))
+                .isInstanceOf(CommentAccessDeniedException.class);
+        assertThat(comment.getBody()).isEqualTo("Original body");
+        assertThat(comment.getEditedAt()).isNull();
+    }
+
+    // Negative: editing a comment that exists but under a different ticket → 404 (nested resource).
+    @Test
+    void updateWithWrongTicketThrowsNotFound() {
+        UUID pathTicketId = UUID.randomUUID();
+        UUID commentId = UUID.randomUUID();
+        Comment comment = ownedComment(UUID.randomUUID(), "u@example.com"); // different ticket
+        when(comments.findById(commentId)).thenReturn(Optional.of(comment));
+
+        assertThatThrownBy(() -> service().update(pathTicketId, commentId, "x", "u@example.com"))
+                .isInstanceOf(NotFoundException.class);
+    }
+
+    // Boundary/negative: editing a missing comment → 404.
+    @Test
+    void updateMissingCommentThrowsNotFound() {
+        UUID ticketId = UUID.randomUUID();
+        UUID commentId = UUID.randomUUID();
+        when(comments.findById(commentId)).thenReturn(Optional.empty());
+
+        assertThatThrownBy(() -> service().update(ticketId, commentId, "x", "u@example.com"))
+                .isInstanceOf(NotFoundException.class);
+    }
+
+    // AC-2 (positive): the author deletes their comment.
+    @Test
+    void deleteByAuthorDeletes() {
+        UUID ticketId = UUID.randomUUID();
+        UUID commentId = UUID.randomUUID();
+        Comment comment = ownedComment(ticketId, "u@example.com");
+        when(comments.findById(commentId)).thenReturn(Optional.of(comment));
+
+        service().delete(ticketId, commentId, "u@example.com");
+
+        verify(comments).delete(comment);
+    }
+
+    // AC-3 (negative): a non-author deleting → 403; nothing deleted.
+    @Test
+    void deleteByNonAuthorThrowsForbidden() {
+        UUID ticketId = UUID.randomUUID();
+        UUID commentId = UUID.randomUUID();
+        Comment comment = ownedComment(ticketId, "owner@example.com");
+        when(comments.findById(commentId)).thenReturn(Optional.of(comment));
+
+        assertThatThrownBy(() -> service().delete(ticketId, commentId, "intruder@example.com"))
+                .isInstanceOf(CommentAccessDeniedException.class);
+        verify(comments, never()).delete(any());
+    }
+
+    // Boundary/negative: deleting a missing (or already-deleted) comment → 404.
+    @Test
+    void deleteMissingCommentThrowsNotFound() {
+        UUID ticketId = UUID.randomUUID();
+        UUID commentId = UUID.randomUUID();
+        when(comments.findById(commentId)).thenReturn(Optional.empty());
+
+        assertThatThrownBy(() -> service().delete(ticketId, commentId, "u@example.com"))
+                .isInstanceOf(NotFoundException.class);
+        verify(comments, never()).delete(any());
     }
 }
