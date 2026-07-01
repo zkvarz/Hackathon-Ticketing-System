@@ -6,7 +6,7 @@
 | **Type** | BE |
 | **Epic** | EP-05 Tickets |
 | **Story** | ST-02 References & team-change |
-| **Status** | TODO |
+| **Status** | DONE |
 | **Depends on** | HTS-019 |
 | **Blocks** | HTS-022 |
 | **Traceability** | FR-E7, FR-K5; architecture.md §6, §8 |
@@ -28,10 +28,10 @@ the ticket's team changes — the backend must reject a ticket whose epic belong
 - Null epic always allowed.
 
 ## Acceptance criteria
-- [ ] AC-1 — Creating/updating a ticket with an epic from the same team succeeds.
-- [ ] AC-2 — Creating/updating with an epic from a different team → 400 `EPIC_TEAM_MISMATCH`.
-- [ ] AC-3 — Changing team while keeping a now-cross-team epic is rejected; clearing the epic (or choosing a same-team epic) succeeds.
-- [ ] AC-4 — Null epic is always accepted.
+- [x] AC-1 — Creating/updating a ticket with an epic from the same team succeeds.
+- [x] AC-2 — Creating/updating with an epic from a different team → 400 `EPIC_TEAM_MISMATCH`.
+- [x] AC-3 — Changing team while keeping a now-cross-team epic is rejected; clearing the epic (or choosing a same-team epic) succeeds.
+- [x] AC-4 — Null epic is always accepted.
 
 ## Test plan
 **Unit (JUnit 5 + Mockito):**
@@ -48,7 +48,7 @@ cd backend && ./mvnw test -Dtest='*EpicTeam*'
 ```
 
 ## Definition of Done
-- [ ] AC-1..AC-4 met
-- [ ] Unit tests (positive/negative/boundary) pass
-- [ ] Testcontainers integration (cross-team rejection + team-move) passes
-- [ ] INDEX.md status updated
+- [x] AC-1..AC-4 met
+- [x] Unit tests (positive/negative/boundary) pass
+- [x] Testcontainers integration (cross-team rejection + team-move) passes
+- [x] INDEX.md status updated

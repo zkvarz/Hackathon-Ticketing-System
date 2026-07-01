@@ -6,6 +6,7 @@ import com.dataart.tickets.epic.EpicHasTicketsException;
 import com.dataart.tickets.epic.EpicTeamImmutableException;
 import com.dataart.tickets.team.TeamHasChildrenException;
 import com.dataart.tickets.team.TeamNameTakenException;
+import com.dataart.tickets.ticket.EpicTeamMismatchException;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.DisabledException;
@@ -91,6 +92,11 @@ public class ApiExceptionHandler {
     @ExceptionHandler(EpicTeamImmutableException.class)
     public ResponseEntity<ApiError> handleEpicTeamImmutable(EpicTeamImmutableException ex) {
         return build(HttpStatus.BAD_REQUEST, "EPIC_TEAM_IMMUTABLE", ex.getMessage(), List.of());
+    }
+
+    @ExceptionHandler(EpicTeamMismatchException.class)
+    public ResponseEntity<ApiError> handleEpicTeamMismatch(EpicTeamMismatchException ex) {
+        return build(HttpStatus.BAD_REQUEST, "EPIC_TEAM_MISMATCH", ex.getMessage(), List.of());
     }
 
     @ExceptionHandler(EpicHasTicketsException.class)

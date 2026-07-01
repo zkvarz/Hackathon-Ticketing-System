@@ -72,7 +72,7 @@ come from [`../requirements-analysis.md`](../requirements-analysis.md).
 |----|------|-------|-------|------|--------------|--------|
 | HTS-019 | BE | Ticket CRUD: fields, enum validation, created/modified-by/at, modified-at semantics, delete cascades comments | ST-01 | HTS-017 | FR-K1..K4,K6,K8; AMB-1,AMB-3 | DONE |
 | HTS-020 | FE | Ticket create/edit/details view | ST-01 | HTS-018,HTS-019 | FR-S6; NFR-3 | TODO |
-| HTS-021 | BE | Epic-same-team enforcement + team-change epic-reset validation | ST-02 | HTS-019 | FR-E7,FR-K5 | TODO |
+| HTS-021 | BE | Epic-same-team enforcement + team-change epic-reset validation | ST-02 | HTS-019 | FR-E7,FR-K5 | DONE |
 | HTS-022 | FE | Team/epic dropdown linkage (team change clears/replaces epic) | ST-02 | HTS-020,HTS-021 | FR-K5; FR-E6 | TODO |
 
 ### EP-06 Comments

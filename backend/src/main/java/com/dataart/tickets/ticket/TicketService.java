@@ -21,7 +21,9 @@ import java.util.UUID;
  * never the client. Updates diff incoming vs stored so {@code modifiedAt} advances only on a real
  * change (AMB-3); deletion cascades comments at the DB level (FR-K6).
  *
- * <p>Epic same-team enforcement + team-change epic-reset are deferred to HTS-021.
+ * <p>When an epic is set, it must belong to the ticket's team (FR-E7); a team change that would
+ * leave the current epic cross-team is rejected unless the request also clears or replaces the
+ * epic (FR-K5, HTS-021). A null epic is always allowed.
  */
 @Service
 public class TicketService {
@@ -57,6 +59,7 @@ public class TicketService {
                          String title, String body, String creatorEmail) {
         Team team = requireTeam(teamId);
         Epic epic = resolveEpic(epicId);
+        requireEpicSameTeam(team, epic);
         User creator = users.findByEmail(EmailNormalizer.normalize(creatorEmail))
                 .orElseThrow(() -> new NotFoundException("User not found: " + creatorEmail));
         TicketState initialState = state == null ? TicketState.NEW : state;
@@ -70,6 +73,7 @@ public class TicketService {
         Ticket ticket = get(id);
         Team team = requireTeam(teamId);
         Epic epic = resolveEpic(epicId);
+        requireEpicSameTeam(team, epic);
         // Field-level diffing: modified_at advances only if something actually changed (AMB-3).
         ticket.applyChanges(team, epic, type, state, title.trim(), body.trim(), clock.instant());
         return ticket;
@@ -92,5 +96,13 @@ public class TicketService {
         }
         return epics.findById(epicId)
                 .orElseThrow(() -> new NotFoundException("Epic not found: " + epicId));
+    }
+
+    // FR-E7/FR-K5: a set epic must be in the ticket's (possibly newly-chosen) team. Checked against
+    // the request's team+epic, so a team change that keeps a now-cross-team epic is rejected here.
+    private void requireEpicSameTeam(Team team, Epic epic) {
+        if (epic != null && !epic.getTeamId().equals(team.getId())) {
+            throw new EpicTeamMismatchException();
+        }
     }
 }
