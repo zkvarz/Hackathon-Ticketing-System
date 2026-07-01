@@ -6,7 +6,7 @@
 | **Type** | FE |
 | **Epic** | EP-05 Tickets |
 | **Story** | ST-01 Ticket CRUD |
-| **Status** | TODO |
+| **Status** | DONE |
 | **Depends on** | HTS-018, HTS-019 |
 | **Blocks** | HTS-022, HTS-024, HTS-026 |
 | **Traceability** | FR-S6, FR-K1..K3, FR-K6; NFR-3; architecture.md §11; wireframe image3 |
@@ -28,10 +28,10 @@ allow editing type, team, epic, title, body, and state, plus create and delete-w
 - Matches wireframe image3 (metadata line, editable fields, Delete/Save).
 
 ## Acceptance criteria
-- [ ] AC-1 — Details view shows all fields including created-by/at and modified-at.
-- [ ] AC-2 — Create and edit submit valid payloads; server validation errors shown inline.
-- [ ] AC-3 — State dropdown shows human-readable labels but sends canonical values.
-- [ ] AC-4 — Delete asks for confirmation, then deletes and navigates away.
+- [x] AC-1 — Details view shows all fields including created-by/at and modified-at.
+- [x] AC-2 — Create and edit submit valid payloads; server validation errors shown inline.
+- [x] AC-3 — State dropdown shows human-readable labels but sends canonical values.
+- [x] AC-4 — Delete asks for confirmation, then deletes and navigates away.
 
 ## Test plan
 **Component (Vitest + RTL):**
@@ -44,12 +44,12 @@ allow editing type, team, epic, title, body, and state, plus create and delete-w
 
 ## How to run / verify
 ```bash
-cd frontend && npm test -- ticket-view
+cd frontend && npm test -- TicketDetailsPage
 npm run dev   # open a ticket
 ```
 
 ## Definition of Done
-- [ ] AC-1..AC-4 met
-- [ ] Component + MSW tests pass (positive/negative/boundary)
-- [ ] State label/value mapping verified for all five states
-- [ ] INDEX.md status updated
+- [x] AC-1..AC-4 met
+- [x] Component + MSW tests pass (positive/negative/boundary)
+- [x] State label/value mapping verified for all five states
+- [x] INDEX.md status updated

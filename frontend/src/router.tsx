@@ -12,7 +12,8 @@ import { SignupPage } from './features/auth/SignupPage';
 import { VerifyPage } from './features/auth/VerifyPage';
 import { TeamsPage } from './features/teams/TeamsPage';
 import { EpicsPage } from './features/epics/EpicsPage';
-import { BoardPage, NotFoundPage, TicketDetailsPage } from './pages/placeholders';
+import { TicketDetailsPage } from './features/tickets/TicketDetailsPage';
+import { BoardPage, NotFoundPage } from './pages/placeholders';
 
 export const routes = [
   {
@@ -35,6 +36,7 @@ export const routes = [
               { path: '/board', element: <BoardPage /> },
               { path: '/teams', element: <TeamsPage /> },
               { path: '/epics', element: <EpicsPage /> },
+              { path: '/tickets/new', element: <TicketDetailsPage /> },
               { path: '/tickets/:id', element: <TicketDetailsPage /> },
             ],
           },

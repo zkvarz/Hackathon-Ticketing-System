@@ -46,12 +46,34 @@ describe('App shell', () => {
     expect(screen.getByRole('link', { name: 'Board' })).toBeInTheDocument();
   });
 
-  it('renders a tickets detail route with its id param (authenticated)', async () => {
+  it('renders the ticket detail route for its id param (authenticated)', async () => {
     authenticate();
+    server.use(
+      http.get('/api/teams', () =>
+        HttpResponse.json([{ id: 't1', name: 'Payments', epicCount: 0, ticketCount: 1, createdAt: 'x', modifiedAt: 'x' }]),
+      ),
+      http.get('/api/epics', () => HttpResponse.json([])),
+      http.get('/api/tickets/TCK-1042', () =>
+        HttpResponse.json({
+          id: 'TCK-1042',
+          teamId: 't1',
+          epicId: null,
+          epicTitle: null,
+          type: 'bug',
+          state: 'new',
+          title: 'Sample ticket',
+          body: 'Body',
+          createdBy: 'u1',
+          createdByEmail: 'user@example.com',
+          createdAt: '2026-06-30T10:00:00Z',
+          modifiedAt: '2026-06-30T10:00:00Z',
+        }),
+      ),
+    );
     renderAt('/tickets/TCK-1042');
-    await waitFor(() => {
-      expect(screen.getByRole('heading', { name: 'Ticket TCK-1042' })).toBeInTheDocument();
-    });
+
+    expect(await screen.findByDisplayValue('Sample ticket')).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: 'Ticket' })).toBeInTheDocument();
   });
 
   it('renders the not-found page for an unknown path (SPA fallback)', () => {

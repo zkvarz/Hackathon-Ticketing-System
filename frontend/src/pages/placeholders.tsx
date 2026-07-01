@@ -1,8 +1,6 @@
-// Placeholder route pages for the baseline shell. Real screens replace these in later
-// epics (auth: HTS-006/008/012; board: HTS-026; teams: HTS-016; epics: HTS-018; ticket
-// details: HTS-020). Each just identifies its route so navigation/fallback are verifiable.
-
-import { useParams } from 'react-router-dom';
+// Placeholder route pages for the baseline shell. Real screens replace these as epics land
+// (teams: HTS-016; epics: HTS-018; ticket view: HTS-020; board: HTS-026). Each just identifies
+// its route so navigation/fallback are verifiable.
 
 function Placeholder({ title }: { title: string }) {
   return (
@@ -14,10 +12,5 @@ function Placeholder({ title }: { title: string }) {
 }
 
 export const BoardPage = () => <Placeholder title="Board" />;
-
-export const TicketDetailsPage = () => {
-  const { id } = useParams();
-  return <Placeholder title={`Ticket ${id ?? ''}`.trim()} />;
-};
 
 export const NotFoundPage = () => <Placeholder title="Page not found" />;
