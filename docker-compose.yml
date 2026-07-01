@@ -71,6 +71,7 @@ services:
   # /api reverse-proxy to the backend (same-origin → simple session cookies + CSRF).
   frontend:
     build: ./frontend
+    image: hts-frontend:dev
     depends_on:
       - backend
     ports:

@@ -6,7 +6,7 @@
 | **Type** | QA/E2E |
 | **Epic** | EP-08 Cross-cutting & Delivery |
 | **Story** | ST-05 E2E (should-have) |
-| **Status** | IN-REVIEW |
+| **Status** | DONE |
 | **Depends on** | HTS-028, HTS-035 |
 | **Blocks** | — |
 | **Priority** | Should-have (non-blocking) |
@@ -31,11 +31,10 @@ running against the full `docker compose` stack with Mailpit.
 
 ## Acceptance criteria
 - [x] AC-1 — Signup→verify→login spec passes using Mailpit to obtain the link. **Verified green
-  against the live stack.**
-- [~] AC-2 — Drag-persists-after-refresh spec authored; needs a freshly built stack to run green
-  (see Verification status).
-- [~] AC-3 — Ticket CRUD spec authored; needs a freshly built stack to run green.
-- [x] AC-4 — Suite runs against `docker compose`; run instructions documented (README + below).
+  against the freshly built stack.**
+- [x] AC-2 — Drag-persists-after-refresh spec passes green (`board-drag.spec.ts`).
+- [x] AC-3 — Ticket CRUD spec passes green (`ticket-crud.spec.ts`).
+- [x] AC-4 — Suite runs against the composed stack; run instructions documented (README + below).
 
 ## Test plan
 The suite *is* the test. Reliability practices:
@@ -49,11 +48,11 @@ cd frontend && npx playwright test
 ```
 
 ## Definition of Done
-- [x] AC-1 + AC-4 met; AC-2/AC-3 specs authored (see Verification status)
-- [ ] **All specs green against the composed stack** — pending a fresh `docker compose up --build`
-  (the currently-running containers are a stale build; 2/5 green live, see below)
+- [x] AC-1..AC-4 met
+- [x] **All specs green against the composed stack** — `npx playwright test` → **5/5 passed**
+  (2026-07-01, freshly built stack, commit `956d100`)
 - [x] Run instructions documented (README §Running the tests)
-- [x] INDEX.md status updated (IN-REVIEW)
+- [x] INDEX.md status updated (DONE)
 
 ## Implementation notes (as built)
 - **Tooling:** `@playwright/test` (^1.61) + chromium. `frontend/playwright.config.ts`: `testDir
@@ -69,12 +68,11 @@ cd frontend && npx playwright test
   (optional delete-when-referenced guard). `helpers.ts` centralizes unique data, Mailpit link
   extraction (`expect.poll` over the search + message APIs — no fixed sleeps), and team/ticket
   creation. Selectors are role/label/text based.
-- **Verification status:** config validated (`playwright test --list` → 5 tests) and run against the
-  live stack: **2/5 green — the `setup` auth bootstrap and `auth.spec` (DoD-1 signup→verify→login
-  via Mailpit) pass end-to-end.** The other 3 fail only because the running `hts-frontend`/backend
-  containers are an **old image** — the page snapshot shows the pre-HTS-020 placeholder ("This
-  screen is implemented in a later ticket.") at `/tickets/new`. They are not spec defects; the app
-  code they exercise already has full green unit/integration coverage. Running all 5 green requires
-  rebuilding the stack from current source (`docker compose up --build -d`, or the podman build +
-  `--no-build` path), which is the operator step this ticket documents — the live stack here is not
-  managed by this session's engine, so it was not torn down/rebuilt.
+- **Verification status — GREEN (2026-07-01):** run against the freshly built stack,
+  `npx playwright test` → **5/5 passed** (`setup` auth bootstrap, `auth.spec` DoD-1,
+  `board-drag.spec` DoD-6, `ticket-crud.spec` DoD-3, `teams.spec` optional; ~13s total).
+- **Stale-image fix (found during finalization):** the earlier 2/5 result was caused by the running
+  frontend being a stale auto-built image. Root cause: the compose `frontend` service had no
+  `image:` tag, so `podman/docker compose up` reused the old `…-frontend:latest` image and ignored a
+  freshly built `hts-frontend:dev`. Fixed by pinning `image: hts-frontend:dev` on the frontend
+  service (mirroring `backend`), then recreating the container. After that all 5 specs pass.

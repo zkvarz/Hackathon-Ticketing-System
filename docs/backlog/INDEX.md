@@ -26,7 +26,7 @@ come from [`../requirements-analysis.md`](../requirements-analysis.md).
 | EP-05 | Tickets | Ticket CRUD + enum/ref validation + modified-at semantics | DONE |
 | EP-06 | Comments | Add + chronological list + immutability | DONE |
 | EP-07 | Kanban Board | Board view, drag-drop persist/revert, filters & search | DONE |
-| EP-08 | Cross-cutting & Delivery | Error model, UX states, security, README, DoD, E2E | IN-REVIEW |
+| EP-08 | Cross-cutting & Delivery | Error model, UX states, security, README, DoD, E2E | DONE |
 | EP-09 | Stretch (optional) | Password reset, comment edit/delete, history, virtualization | DONE |
 | EP-10 | Improvements & Tech Debt (optional) | Perf + internal-quality items found during build | DONE |
 
@@ -99,8 +99,8 @@ come from [`../requirements-analysis.md`](../requirements-analysis.md).
 | HTS-032 | FE | Global loading/empty/error/success UX + error boundary/toast | ST-01 | HTS-003 | NFR-3 | DONE |
 | HTS-033 | BE | Security hardening: env secrets, headers, no committed secrets, CSRF/SameSite review | ST-02 | HTS-013 | NFR-1; DoD-8 | DONE |
 | HTS-034 | DOCS | README: prerequisites, configuration, startup, run/test commands | ST-03 | HTS-001 | NFR-5; DoD-7 | DONE |
-| HTS-035 | QA | Fresh-DB/no-seed verification + DoD acceptance checklist run-through | ST-04 | (most) | DoD-1..DoD-10 | IN-REVIEW |
-| HTS-036 | QA/E2E | Playwright critical-path suite (signup→verify→login, drag persists, ticket CRUD) — should-have | ST-05 | HTS-028,HTS-035 | DoD-1,DoD-3,DoD-6 | IN-REVIEW |
+| HTS-035 | QA | Fresh-DB/no-seed verification + DoD acceptance checklist run-through | ST-04 | (most) | DoD-1..DoD-10 | DONE |
+| HTS-036 | QA/E2E | Playwright critical-path suite (signup→verify→login, drag persists, ticket CRUD) — should-have | ST-05 | HTS-028,HTS-035 | DoD-1,DoD-3,DoD-6 | DONE |
 
 ### EP-09 Stretch (optional, non-blocking)
 | ID | Type | Title | Story | Deps | Traceability | Status |

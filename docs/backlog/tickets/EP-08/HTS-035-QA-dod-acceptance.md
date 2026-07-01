@@ -6,7 +6,7 @@
 | **Type** | QA |
 | **Epic** | EP-08 Cross-cutting & Delivery |
 | **Story** | ST-04 Delivery acceptance |
-| **Status** | IN-REVIEW |
+| **Status** | DONE |
 | **Depends on** | HTS-016, HTS-018, HTS-020, HTS-024, HTS-028, HTS-030, HTS-033, HTS-034 |
 | **Blocks** | HTS-036 |
 | **Traceability** | DoD-1..DoD-10; FR-P9; architecture.md §7, §13 |
@@ -27,13 +27,13 @@ DoD gate (DoD-1..DoD-10) passes through the running application.
 - Record results in this ticket / a checklist doc.
 
 ## Acceptance criteria
-- [~] AC-1 — Fresh DB after `down -v && up` contains only schema + Flyway metadata (no app rows).
-  **Verified statically** (no seed data exists); live SQL confirmation pending a fresh boot.
-- [~] AC-2 — Each DoD-1..DoD-10 item exercised. DoD-8/DoD-9 verified statically; DoD-1 also
-  verified live via the E2E suite (HTS-036); the rest have a documented run-through ready.
-- [x] AC-3 — All data is creatable via UI/API (the walk-through uses no manual DB edits, by design).
-- [x] AC-4 — Defect-filing process defined in the checklist (no defects found in static/authoring
-  pass).
+- [x] AC-1 — Fresh DB after `down -v && up` contains only schema + Flyway metadata (no app rows).
+  **Confirmed live (2026-07-01):** all 8 app tables = 0 rows; `flyway_schema_history` = 12 migrations.
+- [x] AC-2 — Each DoD-1..DoD-10 item exercised live on the freshly built stack (E2E 5/5 green +
+  fresh-DB SQL + authenticated API smoke). See the checklist matrix.
+- [x] AC-3 — All data creatable via UI/API; the run-through used no manual DB edits (only read-only
+  count queries for AC-1).
+- [x] AC-4 — Defect-filing process defined; **no defects found** in the live run-through.
 
 ## Test plan
 This ticket *is* the acceptance pass:
@@ -50,9 +50,9 @@ docker compose down -v && docker compose up --build
 ## Definition of Done
 - [x] Acceptance checklist authored: [`docs/qa/dod-acceptance-checklist.md`](../../../qa/dod-acceptance-checklist.md)
 - [x] Static gates verified from source: DoD-8 (no committed secret) + DoD-9/FR-P9 (no seed data)
-- [ ] Live DoD-1..DoD-10 walk-through ticked with evidence — pending a fresh `docker compose up --build`
-- [ ] Fresh-DB emptiness confirmed via the documented SQL on a clean boot
-- [x] INDEX.md status updated (IN-REVIEW)
+- [x] Live DoD-1..DoD-10 walk-through ticked with evidence (2026-07-01, commit `956d100`)
+- [x] Fresh-DB emptiness confirmed via the documented SQL on a clean boot
+- [x] INDEX.md status updated (DONE)
 
 ## Implementation notes (as built)
 - Deliverable: **`docs/qa/dod-acceptance-checklist.md`** — a DoD-1..DoD-10 acceptance matrix with
@@ -66,9 +66,12 @@ docker compose down -v && docker compose up --build
     `flyway_schema_history`.
   - *DoD-8 (no secret):* `application.yml` sources datasource/SMTP creds from env with placeholder
     defaults only; `.env` is gitignored (`!.env.example` kept); passwords are Argon2id-hashed.
-- **Requires the operator (documented, not run here):** the live DoD-1..10 walk-through and the
-  fresh-DB SQL both need the stack rebuilt from current source (`docker compose down -v && up
-  --build`). The stack running in this environment is a stale pre-HTS-020 build and is not managed
-  by this session's container engine, so it was not reset/rebuilt. DoD-1 has already been shown green
-  end-to-end by the HTS-036 E2E suite against the live backend.
-- Marked **IN-REVIEW**: checklist + static gates done; live sign-off is the operator's fresh-stack pass.
+- **Live sign-off completed (2026-07-01):** the operator rebuilt both images and brought the stack
+  up on a fresh DB volume. During finalization we found the compose `frontend` service lacked an
+  `image:` tag, so a stale auto-built frontend image was being reused; pinned `image: hts-frontend:dev`
+  (mirrors `backend`) and recreated the container so the freshly built assets are served.
+  - *Fresh-DB (AC-1/DoD-9):* 8 app tables = 0 rows; `flyway_schema_history` = 12 migrations.
+  - *E2E (DoD-1/3/6 + teams):* `npx playwright test` → **5/5 green**.
+  - *API smoke (DoD-2/4/5/6/10):* signup→verify→login→CSRF→team+ticket→comment (author+timestamp)→
+    state change (persisted)→activity log — all through the app, no manual DB edits.
+- Marked **DONE**: checklist ticked with evidence; no defects.
