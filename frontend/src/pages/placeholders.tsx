@@ -1,6 +1,6 @@
-// Placeholder route pages for the baseline shell. Real screens replace these as epics land
-// (teams: HTS-016; epics: HTS-018; ticket view: HTS-020; board: HTS-026). Each just identifies
-// its route so navigation/fallback are verifiable.
+// Remaining placeholder route page. Feature screens have replaced the rest as epics landed
+// (teams: HTS-016; epics: HTS-018; ticket view: HTS-020; board: HTS-026). Only the not-found
+// fallback stays a placeholder until a dedicated 404 screen is designed.
 
 function Placeholder({ title }: { title: string }) {
   return (
@@ -10,7 +10,5 @@ function Placeholder({ title }: { title: string }) {
     </section>
   );
 }
-
-export const BoardPage = () => <Placeholder title="Board" />;
 
 export const NotFoundPage = () => <Placeholder title="Page not found" />;

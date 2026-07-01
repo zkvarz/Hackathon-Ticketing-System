@@ -148,3 +148,136 @@ body {
   border-radius: 50%;
   display: inline-block;
 }
+
+/* Board (HTS-026) */
+.board__toolbar {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+}
+.board__toolbar h1 {
+  margin-right: auto;
+}
+.board__columns {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 0.75rem;
+  align-items: start;
+}
+.board__column {
+  background: #f9fafb;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 0.5rem;
+  min-height: 6rem;
+}
+.board__column-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.5rem;
+}
+.board__column-head h2 {
+  font-size: 0.85rem;
+  margin: 0;
+}
+.board__count {
+  background: var(--border);
+  border-radius: 999px;
+  padding: 0 0.5rem;
+  font-size: 0.75rem;
+}
+.board__empty-col {
+  color: var(--muted);
+  font-size: 0.8rem;
+}
+.board__cards {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+.ticket-card {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  width: 100%;
+  text-align: left;
+  background: #fff;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 0.5rem;
+  cursor: pointer;
+}
+.ticket-card:hover {
+  border-color: var(--accent);
+}
+.ticket-card__type {
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+.ticket-card__title {
+  font-weight: 600;
+}
+.ticket-card__epic {
+  font-size: 0.75rem;
+  color: var(--accent);
+}
+.ticket-card__time {
+  font-size: 0.7rem;
+  color: var(--muted);
+}
+
+/* Ticket form (HTS-020) */
+.ticket-form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  max-width: 40rem;
+}
+.ticket-form__actions {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+  margin-top: 0.5rem;
+}
+.ticket-view__meta {
+  color: var(--muted);
+  font-size: 0.85rem;
+}
+.form__success {
+  color: #15803d;
+}
+
+/* Comments (HTS-024) */
+.comments {
+  margin-top: 1.5rem;
+  max-width: 40rem;
+}
+.comments__list {
+  list-style: none;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+.comment {
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 0.5rem;
+}
+.comment__meta {
+  font-size: 0.75rem;
+  color: var(--muted);
+  margin: 0 0 0.25rem;
+}
+.comments__form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  margin-top: 0.75rem;
+}

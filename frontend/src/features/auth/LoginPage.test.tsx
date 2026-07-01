@@ -12,7 +12,8 @@ import { server } from '../../test/msw/server';
 import { AuthProvider } from '../../auth/AuthContext';
 import { AppLayout } from '../../layout/AppLayout';
 import { LoginPage } from './LoginPage';
-import { BoardPage } from '../../pages/placeholders';
+// Lightweight board stub as the post-login redirect target (the real BoardPage fetches data).
+const BoardPage = () => <h1>Board</h1>;
 
 const user = {
   id: '00000000-0000-0000-0000-000000000001',

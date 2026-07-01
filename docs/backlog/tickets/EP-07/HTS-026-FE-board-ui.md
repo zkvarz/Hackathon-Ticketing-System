@@ -6,7 +6,7 @@
 | **Type** | FE |
 | **Epic** | EP-07 Kanban Board |
 | **Story** | ST-01 Board view |
-| **Status** | TODO |
+| **Status** | DONE |
 | **Depends on** | HTS-020, HTS-025 |
 | **Blocks** | HTS-028, HTS-030, HTS-043 |
 | **Traceability** | FR-B1, FR-B2, FR-B3, FR-B8, FR-B10; FR-S5; NFR-3; wireframe image1 |
@@ -28,10 +28,10 @@ title/type (and epic), a team selector, per-column counts, and entry points to c
 - New-ticket button routes to create; clicking a card opens `/tickets/:id`.
 
 ## Acceptance criteria
-- [ ] AC-1 — Five columns render in workflow order with correct human-readable labels.
-- [ ] AC-2 — Cards appear in the right column for their state, modified-desc within a column.
-- [ ] AC-3 — Team selector switches the board to that team's tickets.
-- [ ] AC-4 — Create and open-ticket entry points work; empty/loading/error states render.
+- [x] AC-1 — Five columns render in workflow order with correct human-readable labels.
+- [x] AC-2 — Cards appear in the right column for their state, modified-desc within a column.
+- [x] AC-3 — Team selector switches the board to that team's tickets.
+- [x] AC-4 — Create and open-ticket entry points work; empty/loading/error states render.
 
 ## Test plan
 **Component (Vitest + RTL):**
@@ -44,12 +44,12 @@ title/type (and epic), a team selector, per-column counts, and entry points to c
 
 ## How to run / verify
 ```bash
-cd frontend && npm test -- board-ui
+cd frontend && npm test -- BoardPage
 npm run dev   # /board
 ```
 
 ## Definition of Done
-- [ ] AC-1..AC-4 met
-- [ ] Component + MSW tests pass (positive/negative/boundary)
-- [ ] Layout/labels match wireframe image1; 100-card render verified
-- [ ] INDEX.md status updated
+- [x] AC-1..AC-4 met
+- [x] Component + MSW tests pass (positive/negative/boundary)
+- [x] Layout/labels match wireframe image1; 100-card render verified
+- [x] INDEX.md status updated

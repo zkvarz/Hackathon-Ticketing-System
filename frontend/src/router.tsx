@@ -13,7 +13,8 @@ import { VerifyPage } from './features/auth/VerifyPage';
 import { TeamsPage } from './features/teams/TeamsPage';
 import { EpicsPage } from './features/epics/EpicsPage';
 import { TicketDetailsPage } from './features/tickets/TicketDetailsPage';
-import { BoardPage, NotFoundPage } from './pages/placeholders';
+import { BoardPage } from './features/board/BoardPage';
+import { NotFoundPage } from './pages/placeholders';
 
 export const routes = [
   {
