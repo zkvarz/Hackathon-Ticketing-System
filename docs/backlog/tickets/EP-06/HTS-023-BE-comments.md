@@ -6,7 +6,7 @@
 | **Type** | BE |
 | **Epic** | EP-06 Comments |
 | **Story** | ST-01 Comments |
-| **Status** | TODO |
+| **Status** | DONE |
 | **Depends on** | HTS-019 |
 | **Blocks** | HTS-024 |
 | **Traceability** | FR-C1..C6; FR-K6 (cascade); architecture.md §6, §8 |
@@ -32,11 +32,11 @@ author and created timestamp, without changing the ticket's `modified_at`.
 - Immutable: no PUT/DELETE endpoints in mandatory scope (FR-C6).
 
 ## Acceptance criteria
-- [ ] AC-1 — Adding a non-empty comment persists it with author + created timestamp.
-- [ ] AC-2 — Empty/whitespace-only body → 400.
-- [ ] AC-3 — Listing returns comments oldest-first.
-- [ ] AC-4 — Adding a comment does not change the ticket's `modified_at`.
-- [ ] AC-5 — No edit/delete endpoints exist for comments (mandatory scope).
+- [x] AC-1 — Adding a non-empty comment persists it with author + created timestamp.
+- [x] AC-2 — Empty/whitespace-only body → 400.
+- [x] AC-3 — Listing returns comments oldest-first.
+- [x] AC-4 — Adding a comment does not change the ticket's `modified_at`.
+- [x] AC-5 — No edit/delete endpoints exist for comments (mandatory scope).
 
 ## Test plan
 **Unit (JUnit 5 + Mockito):**
@@ -56,7 +56,7 @@ curl -X POST localhost:8080/api/tickets/<id>/comments -H 'Content-Type: applicat
 ```
 
 ## Definition of Done
-- [ ] AC-1..AC-5 met
-- [ ] Unit tests (positive/negative/boundary) pass
-- [ ] Testcontainers integration (ordering + modified-at-unchanged + cascade) passes
-- [ ] INDEX.md status updated
+- [x] AC-1..AC-5 met
+- [x] Unit tests (positive/negative/boundary) pass
+- [x] Testcontainers integration (ordering + modified-at-unchanged + cascade) passes
+- [x] INDEX.md status updated
