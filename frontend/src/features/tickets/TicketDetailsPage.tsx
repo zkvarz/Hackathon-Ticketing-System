@@ -28,6 +28,7 @@ import {
 import { Loading } from '../../components/Loading';
 import { ErrorState } from '../../components/ErrorState';
 import { CommentsPanel } from './CommentsPanel';
+import { ActivityPanel } from './ActivityPanel';
 import { useCurrentUser } from '../../auth/AuthContext';
 
 interface FormState {
@@ -306,6 +307,9 @@ export function TicketDetailsPage() {
       {/* Comments exist only for a persisted ticket (HTS-024). The current user id gates the
           author-only edit/delete controls (HTS-040). */}
       {!isCreate && id && <CommentsPanel ticketId={id} currentUserId={currentUser?.id} />}
+
+      {/* Read-only change history for a persisted ticket (HTS-042). */}
+      {!isCreate && id && <ActivityPanel ticketId={id} />}
     </section>
   );
 }

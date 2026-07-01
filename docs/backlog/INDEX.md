@@ -110,7 +110,7 @@ come from [`../requirements-analysis.md`](../requirements-analysis.md).
 | HTS-039 | BE | Edit/delete own comments (backend) | ST-02 | HTS-023 | Stretch §2.10 | DONE |
 | HTS-040 | FE | Edit/delete own comments (frontend) | ST-02 | HTS-039 | Stretch §2.10 | DONE |
 | HTS-041 | BE | Ticket activity history (backend) | ST-03 | HTS-019 | Stretch §2.10 | DONE |
-| HTS-042 | FE | Ticket activity history (frontend) | ST-03 | HTS-041 | Stretch §2.10 | TODO |
+| HTS-042 | FE | Ticket activity history (frontend) | ST-03 | HTS-041 | Stretch §2.10 | DONE |
 | HTS-043 | FE | Virtualized board rendering for large boards | ST-04 | HTS-026 | Stretch §2.10; FR-B10 | TODO |
 
 ### EP-10 Improvements & Tech Debt (optional, non-blocking — found during build)
