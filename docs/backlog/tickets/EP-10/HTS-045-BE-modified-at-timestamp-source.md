@@ -1,12 +1,18 @@
 # HTS-045 — [BE] Single-source `modified_at` (clock-driven, drop the dual write)
 
+> **Superseded by [HTS-047](HTS-047-BE-jpa-auditing-timestamps.md).** This ticket captured the
+> problem with two candidate approaches (A/B). The chosen implementation — Spring Data JPA
+> Auditing driven by the app `Clock` — plus the concrete rationale ("the real reason") and the
+> exact behaviour it fixes are specified in HTS-047. Kept here for history; do not implement from
+> this ticket.
+
 | Field | Value |
 |-------|-------|
 | **ID** | HTS-045 |
 | **Type** | BE (tech-debt) |
 | **Epic** | EP-10 Improvements & Tech Debt |
 | **Story** | ST-02 Timestamp integrity |
-| **Status** | TODO |
+| **Status** | SUPERSEDED (→ HTS-047) |
 | **Depends on** | HTS-019 |
 | **Blocks** | — |
 | **Traceability** | AMB-3; FR-K4, FR-P5; architecture.md §6 |

@@ -14,7 +14,8 @@ integration tests. Any change touching the data model or API updates
 | Story | Ticket | Type | Title |
 |-------|--------|------|-------|
 | ST-01 Board scale | HTS-044 | BE (perf) | Trigram (`pg_trgm` GIN) index for title substring search |
-| ST-02 Timestamp integrity | HTS-045 | BE (tech-debt) | Single-source `modified_at` (clock-driven, drop the dual write) |
+| ST-02 Timestamp integrity | ~~HTS-045~~ | BE (tech-debt) | ~~Single-source `modified_at`~~ — superseded by HTS-047 |
+| ST-02 Timestamp integrity | HTS-047 | BE (tech-debt) | Single-source timestamps via Spring Data JPA Auditing (Clock-driven) |
 | ST-03 Session integrity | HTS-046 | BE (tech-debt/security) | Absolute session lifetime cap (8h), independent of idle timeout |
 
 **Origin.** HTS-044/045 were raised in the HTS-019/025/029 review: HTS-044 addresses the
