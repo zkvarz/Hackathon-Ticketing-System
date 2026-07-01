@@ -1,0 +1,20 @@
+# Production profile (HTS-033). No secret has a default here: every value must come from the
+# environment, so a missing secret fails startup (reinforced by RequiredSecretsValidator with a
+# clear message). Activate with SPRING_PROFILES_ACTIVE=prod.
+spring:
+  datasource:
+    url: ${SPRING_DATASOURCE_URL}
+    username: ${SPRING_DATASOURCE_USERNAME}
+    password: ${SPRING_DATASOURCE_PASSWORD}
+  mail:
+    host: ${SMTP_HOST}
+    port: ${SMTP_PORT}
+    username: ${SMTP_USERNAME}
+    password: ${SMTP_PASSWORD}
+
+server:
+  servlet:
+    session:
+      cookie:
+        # HTTPS is assumed in production, so the session cookie is Secure (sent only over TLS).
+        secure: true

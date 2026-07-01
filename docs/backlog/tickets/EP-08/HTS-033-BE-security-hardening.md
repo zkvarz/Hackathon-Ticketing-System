@@ -28,10 +28,10 @@ cookie flags, and a guarantee that no secret is committed.
 - Add a build/test check (or documented `git grep`/secret-scan) for committed secrets (DoD-8).
 
 ## Acceptance criteria
-- [ ] AC-1 — No real secret/credential is present in any committed file or default.
-- [ ] AC-2 — Security headers are present on responses.
-- [ ] AC-3 — Cookie flags are `HttpOnly`+`SameSite`(+`Secure` in non-local profiles).
-- [ ] AC-4 — Session/bearer tokens never appear in URLs (only the verification token may).
+- [x] AC-1 — No real secret/credential is present in any committed file or default.
+- [x] AC-2 — Security headers are present on responses.
+- [x] AC-3 — Cookie flags are `HttpOnly`+`SameSite`(+`Secure` in non-local profiles).
+- [x] AC-4 — Session/bearer tokens never appear in URLs (only the verification token may).
 
 ## Test plan
 **Unit / Spring test:**
@@ -49,10 +49,23 @@ git grep -nE '(password|secret|token)\s*=\s*["'"'"']' -- ':!*test*'   # expect n
 ```
 
 ## Definition of Done
-- [ ] AC-1..AC-4 met
-- [ ] Tests pass (positive/negative/boundary)
-- [ ] Secret scan clean (DoD-8)
-- [ ] INDEX.md status updated
+- [x] AC-1..AC-4 met
+- [x] Tests pass (positive/negative/boundary) — `RequiredSecretsValidatorSecurityTest` (3),
+  `SecurityHeadersIntegrationTest` (2); existing `EndpointSecurityIntegrationTest` still green
+- [x] Secret scan clean (DoD-8) — only match is a UI validation string, not a secret
+- [x] INDEX.md status updated
+
+## Implementation notes (as built)
+- Headers via Spring Security: `X-Content-Type-Options: nosniff` + `X-Frame-Options: DENY`
+  (defaults) plus an explicit `Referrer-Policy: strict-origin-when-cross-origin`; HSTS configured
+  (emitted over HTTPS only, so it activates in the prod profile).
+- `application-prod.yml`: no secret defaults (every value is a bare `${ENV}` → missing = startup
+  failure) and `server.servlet.session.cookie.secure: true`. Default/local profile keeps
+  `HttpOnly` + `SameSite=Lax`.
+- `RequiredSecretsValidator` (`@Profile("prod")`) aborts startup with one clear, aggregated
+  message listing any missing/blank required secret, before the opaque downstream failure.
+- Added `.gitattributes` (`* text=auto eol=lf`, `mvnw text eol=lf`, binary rules) per the
+  carry-over note; `backend/mvnw` retains mode `100755`.
 
 ## Carry-over notes (repo hygiene, from EP-01/EP-02 implementation)
 - **Add a `.gitattributes`** (`* text=auto eol=lf` + binary rules). The repo is developed on

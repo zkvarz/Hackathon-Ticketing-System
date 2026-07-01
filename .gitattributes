@@ -1,0 +1,24 @@
+# Normalize line endings (HTS-033 repo hygiene). The repo is developed on Windows; without this,
+# every commit emits LF->CRLF warnings and shell scripts can be checked out with CRLF.
+* text=auto eol=lf
+
+# Keep shell wrappers/scripts LF so they stay executable on CI (backend/mvnw failed CI with
+# "Permission denied" / CRLF before this).
+*.sh    text eol=lf
+mvnw    text eol=lf
+*.bash  text eol=lf
+
+# Windows batch stays CRLF.
+*.bat   text eol=crlf
+*.cmd   text eol=crlf
+
+# Binary assets: never normalize.
+*.png   binary
+*.jpg   binary
+*.jpeg  binary
+*.gif   binary
+*.ico   binary
+*.pdf   binary
+*.jar   binary
+*.woff  binary
+*.woff2 binary
