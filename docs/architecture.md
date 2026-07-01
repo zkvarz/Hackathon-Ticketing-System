@@ -252,7 +252,12 @@ Server-side session cookies (A-3 / AMB-7), via Spring Security.
   static assets (FR-A12). CSRF protection on state-changing requests (Spring Security default,
   SPA reads token from cookie/header). (HTS-013/014)
 
-Session lifetime: 8h absolute + 30 min idle; no "remember me".
+Session lifetime: 8h absolute + 30 min idle; no "remember me". The **idle/sliding** timeout is
+the servlet container's (`server.servlet.session.timeout`); the **absolute** cap
+(`app.session.absolute-timeout`) is enforced by `SessionAbsoluteTimeoutFilter` (HTS-046), which
+stamps the login instant on the session and, once `now − createdAt ≥ cap`, invalidates it and
+returns the standard `401 UNAUTHENTICATED` — independent of activity. The filter is clock-driven
+(injected `Clock`) for deterministic tests.
 
 ---
 

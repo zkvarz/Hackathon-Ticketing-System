@@ -5,6 +5,7 @@ import com.dataart.tickets.auth.dto.ResendRequest;
 import com.dataart.tickets.auth.dto.SignupRequest;
 import com.dataart.tickets.auth.dto.UserResponse;
 import com.dataart.tickets.auth.dto.VerificationResult;
+import com.dataart.tickets.config.SessionAbsoluteTimeoutFilter;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
@@ -25,6 +26,8 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.time.Clock;
+
 /**
  * Auth endpoints (architecture.md §8/§9). Sign-up/verify/resend are public; login establishes a
  * server-side session, logout invalidates it, and {@code /me} reports the current user. The
@@ -39,17 +42,20 @@ public class AuthController {
     private final AuthenticationManager authenticationManager;
     private final SecurityContextRepository securityContextRepository;
     private final UserRepository users;
+    private final Clock clock;
 
     public AuthController(AuthService authService,
                           EmailVerificationService emailVerification,
                           AuthenticationManager authenticationManager,
                           SecurityContextRepository securityContextRepository,
-                          UserRepository users) {
+                          UserRepository users,
+                          Clock clock) {
         this.authService = authService;
         this.emailVerification = emailVerification;
         this.authenticationManager = authenticationManager;
         this.securityContextRepository = securityContextRepository;
         this.users = users;
+        this.clock = clock;
     }
 
     @PostMapping("/signup")
@@ -97,6 +103,10 @@ public class AuthController {
         context.setAuthentication(authentication);
         SecurityContextHolder.setContext(context);
         securityContextRepository.saveContext(context, httpRequest, httpResponse);
+
+        // Stamp the login instant so the absolute session-lifetime cap can be enforced (HTS-046).
+        httpRequest.getSession().setAttribute(
+                SessionAbsoluteTimeoutFilter.SESSION_CREATED_AT, clock.instant());
 
         return UserResponse.from(users.findByEmail(email).orElseThrow());
     }

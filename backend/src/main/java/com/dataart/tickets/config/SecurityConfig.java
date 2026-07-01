@@ -2,6 +2,7 @@ package com.dataart.tickets.config;
 
 import com.dataart.tickets.common.ApiError;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
@@ -20,12 +21,15 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.access.AccessDeniedHandler;
+import org.springframework.security.web.access.intercept.AuthorizationFilter;
 import org.springframework.security.web.authentication.www.BasicAuthenticationFilter;
 import org.springframework.security.web.context.HttpSessionSecurityContextRepository;
 import org.springframework.security.web.context.SecurityContextRepository;
 import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
 import org.springframework.security.web.csrf.CsrfTokenRequestAttributeHandler;
 
+import java.time.Clock;
+import java.time.Duration;
 import java.time.Instant;
 import java.util.List;
 
@@ -44,7 +48,10 @@ public class SecurityConfig {
 
     @Bean
     SecurityFilterChain filterChain(HttpSecurity http, AuthenticationEntryPoint entryPoint,
-                                    AccessDeniedHandler accessDeniedHandler) throws Exception {
+                                    AccessDeniedHandler accessDeniedHandler,
+                                    Clock clock, ObjectMapper mapper,
+                                    @Value("${app.session.absolute-timeout}") Duration absoluteTimeout)
+            throws Exception {
         CsrfTokenRequestAttributeHandler csrfRequestHandler = new CsrfTokenRequestAttributeHandler();
 
         http
@@ -57,6 +64,10 @@ public class SecurityConfig {
                                 "/api/auth/logout", "/api/auth/resend"))
                 // Emit the XSRF-TOKEN cookie once the token is resolved.
                 .addFilterAfter(new CsrfCookieFilter(), BasicAuthenticationFilter.class)
+                // Enforce the absolute session lifetime cap before authorization (HTS-046): an
+                // expired session is invalidated and rejected with the standard 401.
+                .addFilterBefore(new SessionAbsoluteTimeoutFilter(absoluteTimeout, clock, mapper),
+                        AuthorizationFilter.class)
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(HttpMethod.GET, "/api/health").permitAll()
                         .requestMatchers(HttpMethod.POST,

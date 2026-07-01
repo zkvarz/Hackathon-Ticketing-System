@@ -41,11 +41,11 @@ hardening item, not a spec gap in behavior the app claims to have.
   keep `Clock` injectable so tests can fast-forward.
 
 ## Acceptance criteria
-- [ ] AC-1 — A session older than the absolute cap is rejected (401 in the standard error model)
+- [x] AC-1 — A session older than the absolute cap is rejected (401 in the standard error model)
   even with continuous activity.
-- [ ] AC-2 — A session within the cap keeps working normally; the idle timeout still applies too.
-- [ ] AC-3 — The cap value comes from `app.session.absolute-timeout` (env-overridable).
-- [ ] AC-4 — Expiry surfaces as `401 UNAUTHENTICATED` (same shape the FE already redirects on).
+- [x] AC-2 — A session within the cap keeps working normally; the idle timeout still applies too.
+- [x] AC-3 — The cap value comes from `app.session.absolute-timeout` (env-overridable).
+- [x] AC-4 — Expiry surfaces as `401 UNAUTHENTICATED` (same shape the FE already redirects on).
 
 ## Test plan
 **Unit (JUnit 5 + Mockito):**
@@ -63,8 +63,22 @@ cd backend && ./mvnw test -Dtest='*Session*'
 ```
 
 ## Definition of Done
-- [ ] AC-1..AC-4 met
-- [ ] Unit + integration tests pass (positive/negative/boundary)
-- [ ] `application.yml` comment updated to reflect the cap is now enforced (not a TODO)
-- [ ] architecture.md §9 note on session lifetime updated
-- [ ] INDEX.md status updated
+- [x] AC-1..AC-4 met
+- [x] Unit + integration tests pass (positive/negative/boundary) — `SessionAbsoluteTimeoutFilterTest`
+  (6) + `SessionAbsoluteTimeoutIntegrationTest` (2)
+- [x] `application.yml` comment updated to reflect the cap is now enforced (not a TODO)
+- [x] architecture.md §9 note on session lifetime updated
+- [x] INDEX.md status updated
+
+## Implementation notes (as built)
+- `SessionAbsoluteTimeoutFilter` (config, `OncePerRequestFilter`): reads the `SESSION_CREATED_AT`
+  instant stamped on the session and, once `now − createdAt ≥ app.session.absolute-timeout`,
+  invalidates the session + clears the context + writes the standard `401 UNAUTHENTICATED`
+  `ApiError`. Clock-injected; boundary is "elapsed ≥ cap" (exactly at cap expires).
+- Wired in `SecurityConfig.filterChain` via `addFilterBefore(..., AuthorizationFilter.class)` with
+  the cap bound from `@Value("${app.session.absolute-timeout}")` (Duration). The filter is
+  constructed (not a `@Component`) so Boot doesn't also register it on the plain servlet chain.
+- `AuthController.login` stamps `SESSION_CREATED_AT = clock.instant()` on the session right after
+  `saveContext`. `AuthController` now takes the `Clock` bean.
+- Test note: the integration test overrides the `clock` bean with a fast-forwardable `MutableClock`
+  (`spring.main.allow-bean-definition-overriding=true`) to advance past the cap deterministically.
