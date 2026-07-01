@@ -11,7 +11,7 @@ single `docker compose up --build` — no host-installed runtimes required beyon
 
 ## Contents
 
-- [Quick start](#quick-start) · [Running with Podman](#running-with-podman-windows--powershell)
+- [Quick start](#quick-start) · [Running with Podman](#running-with-podman-optional)
 - [Prerequisites](#prerequisites) · [Configuration](#configuration) · [URLs](#urls)
 - [Resetting the database](#resetting-the-database) · [Running the tests](#running-the-tests)
 - [Troubleshooting](#troubleshooting) · [Documentation](#documentation)
@@ -47,38 +47,66 @@ Copy-Item .env.example .env
 docker compose up --build
 ```
 
-## Running with Podman (Windows + PowerShell)
+## Running with Podman (optional)
 
-The project targets standard Docker/Docker Compose, but it also runs under **Podman**. One
-caveat on some Podman setups (including this one): `docker compose build` /
-`docker compose up --build` routes image builds through a `buildx_buildkit_default` BuildKit
-container whose session can **hang** for minutes. The fix is to build the images with Podman's
-native builder (buildah, no BuildKit) and then start the stack **without rebuilding**.
+Everything above assumes Docker. The stack also runs under **Podman** — in fact this is the path
+the project was developed on (Windows + PowerShell). The pattern is: **build the two images with
+Podman's native builder, then start the stack with `podman compose` (which reuses those images
+without rebuilding).**
 
 ```powershell
 # 0) One-time: create the env file
 Copy-Item .env.example .env
 
-# 1) Build both images with podman (buildah — does NOT use BuildKit)
+# 1) Build both images with podman (uses buildah — NOT BuildKit)
 podman build -t hts-backend:dev ./backend
 podman build -t hts-frontend:dev ./frontend
 
-# 2) Start the whole stack WITHOUT rebuilding (uses the images built above).
-#    --no-build is the important flag on this path — never `--build`.
-docker compose up -d --no-build
+# 2) Start the whole stack. The images built above are reused as-is (no rebuild).
+podman compose up -d
 
 # 3) Watch it come up / tail logs
-docker compose ps
-docker compose logs -f backend
+podman compose ps
+podman compose logs -f backend
 ```
 
-> The Compose file tags the images `hts-backend:dev` and `hts-frontend:dev`, which is why the
-> `podman build -t …` tags above line up with what `docker compose up --no-build` expects. If
-> `docker compose` isn't wired to your podman socket, the equivalent `podman compose up -d
-> --no-build` works the same way.
+Open **http://localhost:8081** once `podman compose ps` shows the services up. (On Linux/macOS the
+only difference is `cp .env.example .env` instead of the `Copy-Item` line.)
 
-Open **http://localhost:8081** once `docker compose ps` shows the `frontend` and `backend`
-services healthy/up.
+### Why not `docker compose up --build` / `podman compose up --build`?
+
+On many Podman setups (including the one this project was built on), letting **Compose do the
+build** — `docker compose build`, `docker compose up --build`, or `podman compose up --build` —
+routes the image build through a `buildx_buildkit_default` BuildKit helper container. Podman does
+not run the Docker BuildKit daemon the way Docker Desktop does, so that build session can **hang
+for minutes** (or indefinitely) instead of producing an image. On this machine even a plain
+`docker compose up` through the Rancher Desktop compose provider can stall on a single service.
+
+The reliable fix is to **not let Compose build at all**:
+
+1. Build each image yourself with `podman build`. That uses **buildah** (Podman's native builder) —
+   no BuildKit, no hang.
+2. Bring the stack up **without building**. Because `docker-compose.yml` pins the image tags
+   (`image: hts-backend:dev` and `image: hts-frontend:dev`), `podman compose up -d` finds those
+   images already present and **reuses them** — it never triggers a build. This is exactly why the
+   two `podman build -t …` tags must match the tags in the Compose file.
+
+> **After changing code:** re-run `podman build -t …` for the tier you changed, then
+> `podman compose up -d` again — Compose recreates the container from the new image. Never add
+> `--build` on this path. (If a container keeps serving stale code, it's running an older image;
+> rebuild that tier and recreate it.)
+
+> **`docker` CLI wired to the Podman socket instead?** The equivalent is
+> `docker compose up -d --no-build` — the `--no-build` flag is what keeps it from invoking BuildKit.
+
+> **If even `compose up` hangs** on a single service, start that one container directly with
+> `podman run` on the compose network (the network is `<project>_app`, where `<project>` is the
+> repo folder name). For example, the frontend:
+> ```powershell
+> podman run -d --name hackathon-ticketing-system-frontend-1 `
+>   --network hackathon-ticketing-system_app --network-alias frontend `
+>   -p 8081:80 hts-frontend:dev
+> ```
 
 ## Configuration
 
@@ -123,7 +151,7 @@ volume with `-v`:
 ```powershell
 # Full reset to an empty DB, then rebuild/start
 docker compose down -v
-docker compose up --build          # or, on podman: docker compose up -d --no-build
+docker compose up --build          # on podman: podman compose down -v, then podman compose up -d
 ```
 
 ## Running the tests
@@ -165,7 +193,8 @@ also runs in CI** — the `e2e` job (HTS-049) boots the compose stack and runs i
 
 ```bash
 # The stack MUST be built from current source — start it fresh so the containers aren't stale:
-docker compose up --build -d        # or the podman build + --no-build path above
+docker compose up --build -d        # on podman: podman build both images, then podman compose up -d
+
 cd frontend
 npm ci                              # first time only
 npx playwright install chromium     # first time only (downloads the browser)
@@ -179,7 +208,8 @@ it does not start it.
 ## Troubleshooting
 
 - **Build hangs for minutes on Podman** → you hit the BuildKit caveat. Stop it, and use the
-  [Running with Podman](#running-with-podman-windows--powershell) path (`podman build` + `up --no-build`).
+  [Running with Podman](#running-with-podman-optional) path (`podman build` both images, then
+  `podman compose up -d` — no Compose-driven build).
 - **Backend exits / can't connect to the DB** → the datasource in `.env` must match the
   `POSTGRES_*` credentials, and `SPRING_DATASOURCE_URL` must use host `db` (the compose service
   name), not `localhost`.
