@@ -109,3 +109,54 @@ jobs:
       - name: Tear down the stack
         if: always()
         run: docker compose down -v
+
+  api-contract:
+    name: API contract (OpenAPI types in sync)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Create .env
+        run: cp .env.example .env
+
+      # Only the backend is needed (it pulls in db + mailpit); the frontend stays down.
+      - name: Build and start the backend
+        run: docker compose up --build -d backend
+
+      - name: Wait for the backend to be ready
+        run: timeout 180 bash -c 'until curl -sf http://localhost:8080/api/health | grep -q UP; do sleep 3; done'
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install dependencies
+        working-directory: frontend
+        run: npm ci
+
+      - name: Regenerate API types from the live spec
+        working-directory: frontend
+        run: npm run gen:api
+
+      - name: Fail if the committed types are stale
+        working-directory: frontend
+        run: |
+          if ! git diff --exit-code -- src/api/schema.d.ts; then
+            echo "::error::src/api/schema.d.ts is out of date with the backend OpenAPI spec. Run 'npm run gen:api' and commit the result."
+            exit 1
+          fi
+
+      - name: Typecheck the SPA against the contract
+        working-directory: frontend
+        run: npm run typecheck
+
+      - name: Dump backend logs on failure
+        if: failure()
+        run: docker compose logs --no-color backend
+
+      - name: Tear down the stack
+        if: always()
+        run: docker compose down -v
