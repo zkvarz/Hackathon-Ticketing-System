@@ -59,6 +59,16 @@
             <version>${bouncycastle.version}</version>
         </dependency>
 
+        <!-- OpenAPI/Swagger (HTS-050): code-first API docs. Introspects the @RestControllers to
+             serve the OpenAPI 3 spec at /v3/api-docs and Swagger UI at /swagger-ui; the frontend
+             generates its TS types from the spec. Disabled in the prod profile. 2.6.x targets
+             Spring Boot 3.3. -->
+        <dependency>
+            <groupId>org.springdoc</groupId>
+            <artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
+            <version>2.6.0</version>
+        </dependency>
+
         <dependency>
             <groupId>org.flywaydb</groupId>
             <artifactId>flyway-core</artifactId>

@@ -50,7 +50,8 @@ public class SecurityConfig {
     SecurityFilterChain filterChain(HttpSecurity http, AuthenticationEntryPoint entryPoint,
                                     AccessDeniedHandler accessDeniedHandler,
                                     Clock clock, ObjectMapper mapper,
-                                    @Value("${app.session.absolute-timeout}") Duration absoluteTimeout)
+                                    @Value("${app.session.absolute-timeout}") Duration absoluteTimeout,
+                                    @Value("${springdoc.api-docs.enabled:true}") boolean apiDocsEnabled)
             throws Exception {
         CsrfTokenRequestAttributeHandler csrfRequestHandler = new CsrfTokenRequestAttributeHandler();
 
@@ -69,15 +70,22 @@ public class SecurityConfig {
                 // expired session is invalidated and rejected with the standard 401.
                 .addFilterBefore(new SessionAbsoluteTimeoutFilter(absoluteTimeout, clock, mapper),
                         AuthorizationFilter.class)
-                .authorizeHttpRequests(auth -> auth
-                        .requestMatchers(HttpMethod.GET, "/api/health").permitAll()
-                        .requestMatchers(HttpMethod.POST,
-                                "/api/auth/signup", "/api/auth/login", "/api/auth/resend",
-                                "/api/auth/forgot-password", "/api/auth/reset-password").permitAll()
-                        .requestMatchers(HttpMethod.GET, "/api/auth/verify").permitAll()
+                .authorizeHttpRequests(auth -> {
+                        auth.requestMatchers(HttpMethod.GET, "/api/health").permitAll()
+                                .requestMatchers(HttpMethod.POST,
+                                        "/api/auth/signup", "/api/auth/login", "/api/auth/resend",
+                                        "/api/auth/forgot-password", "/api/auth/reset-password").permitAll()
+                                .requestMatchers(HttpMethod.GET, "/api/auth/verify").permitAll();
+                        // API docs (HTS-050) are public only while enabled — i.e. in dev; the prod
+                        // profile disables springdoc, so these paths 404 and are never exposed.
+                        if (apiDocsEnabled) {
+                                auth.requestMatchers("/v3/api-docs/**", "/swagger-ui/**",
+                                        "/swagger-ui.html").permitAll();
+                        }
                         // Everything else (incl. /api/auth/me, /logout, and all business endpoints)
                         // requires authentication.
-                        .anyRequest().authenticated())
+                        auth.anyRequest().authenticated();
+                })
                 .exceptionHandling(eh -> eh
                         .authenticationEntryPoint(entryPoint)
                         .accessDeniedHandler(accessDeniedHandler))

@@ -1,6 +1,7 @@
 package com.dataart.tickets.ticket.dto;
 
 import com.dataart.tickets.ticket.TicketActivity;
+import io.swagger.v3.oas.annotations.media.Schema;
 
 import java.time.Instant;
 import java.util.UUID;
@@ -15,8 +16,8 @@ public record TicketActivityResponse(
         UUID ticketId,
         String actorEmail,
         String field,
-        String oldValue,
-        String newValue,
+        @Schema(nullable = true) String oldValue,
+        @Schema(nullable = true) String newValue,
         Instant at
 ) {
     public static TicketActivityResponse from(TicketActivity activity) {

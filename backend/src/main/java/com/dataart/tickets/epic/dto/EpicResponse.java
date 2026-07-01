@@ -1,6 +1,7 @@
 package com.dataart.tickets.epic.dto;
 
 import com.dataart.tickets.epic.Epic;
+import io.swagger.v3.oas.annotations.media.Schema;
 
 import java.time.Instant;
 import java.util.UUID;
@@ -14,7 +15,7 @@ public record EpicResponse(
         UUID id,
         UUID teamId,
         String title,
-        String description,
+        @Schema(nullable = true) String description,
         long ticketCount,
         Instant createdAt,
         Instant modifiedAt

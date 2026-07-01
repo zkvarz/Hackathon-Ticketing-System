@@ -1,6 +1,7 @@
 package com.dataart.tickets.comment.dto;
 
 import com.dataart.tickets.comment.Comment;
+import io.swagger.v3.oas.annotations.media.Schema;
 
 import java.time.Instant;
 import java.util.UUID;
@@ -17,7 +18,7 @@ public record CommentResponse(
         String authorEmail,
         String body,
         Instant createdAt,
-        Instant editedAt
+        @Schema(nullable = true) Instant editedAt
 ) {
     public static CommentResponse from(Comment comment) {
         return new CommentResponse(comment.getId(), comment.getTicketId(), comment.getAuthorId(),

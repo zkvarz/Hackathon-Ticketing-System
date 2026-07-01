@@ -229,6 +229,15 @@ REST/JSON under `/api`. Conventions: plural nouns, UUIDv7 path IDs, ISO-8601 UTC
 | Activity | `GET /api/tickets/{id}/activity` (append-only history, HTS-041) | required |
 | Board | served via `GET /api/tickets?teamId=…` ordered by modified desc | required |
 | Health | `GET /api/health` | public |
+| API docs (dev only) | `GET /v3/api-docs`, `GET /swagger-ui/index.html` | public in dev; disabled in prod (HTS-050) |
+
+**OpenAPI / Swagger** (HTS-050, code-first). springdoc introspects the controllers to serve an
+OpenAPI 3 spec at `/v3/api-docs` and Swagger UI at `/swagger-ui`. `OpenApiConfig` adds the API info
+and registers the `ApiError` model (produced by the exception handler, so not otherwise scanned) as
+the common 4xx response. Both endpoints are **public in dev and disabled in the `prod` profile**
+(and dropped from the security allowlist when disabled). The frontend generates its API types from
+this spec — `npm run gen:api` writes `frontend/src/api/schema.d.ts`, from which the domain response
+types are derived (see §11), so the SPA cannot silently drift from the backend contract.
 
 **Standardized error model** (HTS-031), returned for all 4xx/5xx (FR-P4):
 
@@ -287,6 +296,11 @@ returns the standard `401 UNAUTHENTICATED` — independent of activity. The filt
   Browser storage is **never** the system of record (FR-P2).
 - **API client:** typed fetch wrapper; sends credentials (cookie) + CSRF header; centralizes
   error-model parsing.
+- **Generated API types (HTS-050):** `src/api/schema.d.ts` is generated from the backend OpenAPI
+  spec (`npm run gen:api`). The response domain types (`Ticket`, `Team`, `Epic`, `Comment`,
+  `TicketActivity`, `UserResponse`, `ApiErrorBody`) and the ticket enums are derived from it, so a
+  backend contract change is caught by `npm run typecheck` after regenerating. Request-input types
+  stay hand-written (the client decides how absent fields are sent).
 - **UX states (NFR-3):** shared components for loading, empty, error, success across screens.
 - **Board (dnd-kit):** 5 columns; optimistic move on drop, **revert + error toast on API
   failure** (FR-B5); cards ordered most-recently-modified (FR-B7).

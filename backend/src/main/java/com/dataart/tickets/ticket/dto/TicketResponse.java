@@ -3,6 +3,7 @@ package com.dataart.tickets.ticket.dto;
 import com.dataart.tickets.ticket.Ticket;
 import com.dataart.tickets.ticket.TicketState;
 import com.dataart.tickets.ticket.TicketType;
+import io.swagger.v3.oas.annotations.media.Schema;
 
 import java.time.Instant;
 import java.util.UUID;
@@ -16,8 +17,8 @@ import java.util.UUID;
 public record TicketResponse(
         UUID id,
         UUID teamId,
-        UUID epicId,
-        String epicTitle,
+        @Schema(nullable = true) UUID epicId,
+        @Schema(nullable = true) String epicTitle,
         TicketType type,
         TicketState state,
         String title,

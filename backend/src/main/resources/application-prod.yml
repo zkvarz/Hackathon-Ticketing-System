@@ -18,3 +18,12 @@ server:
       cookie:
         # HTTPS is assumed in production, so the session cookie is Secure (sent only over TLS).
         secure: true
+
+# API docs are a dev/authoring aid only — never exposed in production (HTS-050). Disabling both the
+# spec endpoint and the UI makes /v3/api-docs and /swagger-ui 404; SecurityConfig also drops them
+# from the public allowlist when disabled.
+springdoc:
+  api-docs:
+    enabled: false
+  swagger-ui:
+    enabled: false

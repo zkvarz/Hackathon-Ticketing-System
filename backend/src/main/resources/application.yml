@@ -59,3 +59,11 @@ app:
   password-reset:
     # Shorter TTL than verification: reset links are higher-value and single-use (HTS-037).
     token-ttl: ${APP_PASSWORD_RESET_TOKEN_TTL:1h}
+
+# OpenAPI / Swagger (HTS-050). Enabled here (dev); the prod profile disables both the spec and the
+# UI. OpenAPI 3.0 keeps nullable as `nullable: true`, which the frontend's type generator consumes
+# directly. Only /api/** operations are documented.
+springdoc:
+  api-docs:
+    version: openapi_3_0
+  paths-to-match: /api/**
