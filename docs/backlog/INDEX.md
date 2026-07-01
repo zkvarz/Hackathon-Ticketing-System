@@ -118,6 +118,7 @@ come from [`../requirements-analysis.md`](../requirements-analysis.md).
 |----|------|-------|-------|------|--------------|--------|
 | HTS-044 | BE | Trigram (pg_trgm GIN) index for title substring search | ST-01 | HTS-029 | FR-B9,B10; AMB-4,AMB-10 | TODO |
 | HTS-045 | BE | Single-source modified_at (clock-driven, drop dual write) | ST-02 | HTS-019 | AMB-3; FR-K4,P5 | TODO |
+| HTS-046 | BE | Absolute session lifetime cap (8h), independent of idle timeout | ST-03 | HTS-011 | AMB-7; NFR-1 | TODO |
 
 ---
 

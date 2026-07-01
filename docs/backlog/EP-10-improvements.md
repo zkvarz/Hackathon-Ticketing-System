@@ -15,7 +15,11 @@ integration tests. Any change touching the data model or API updates
 |-------|--------|------|-------|
 | ST-01 Board scale | HTS-044 | BE (perf) | Trigram (`pg_trgm` GIN) index for title substring search |
 | ST-02 Timestamp integrity | HTS-045 | BE (tech-debt) | Single-source `modified_at` (clock-driven, drop the dual write) |
+| ST-03 Session integrity | HTS-046 | BE (tech-debt/security) | Absolute session lifetime cap (8h), independent of idle timeout |
 
-**Origin.** Both were raised in the HTS-019/025/029 review. HTS-044 addresses the `LIKE '%…%'`
-search added in HTS-029 (can't use a b-tree index); HTS-045 addresses the `modified_at`
-dual-source (`BaseEntity.@PreUpdate` now() vs. service clock) noted in HTS-019.
+**Origin.** HTS-044/045 were raised in the HTS-019/025/029 review: HTS-044 addresses the
+`LIKE '%…%'` search added in HTS-029 (can't use a b-tree index); HTS-045 addresses the
+`modified_at` dual-source (`BaseEntity.@PreUpdate` now() vs. service clock) noted in HTS-019.
+HTS-046 was raised during HTS-011/HTS-033: the servlet container enforces only the idle timeout,
+so the AMB-7 absolute 8h cap (config value already present as `app.session.absolute-timeout`)
+needs a small filter to be enforced.
