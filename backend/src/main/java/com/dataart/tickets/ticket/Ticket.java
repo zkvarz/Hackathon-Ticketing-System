@@ -13,6 +13,8 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
 
@@ -81,32 +83,45 @@ public class Ticket extends BaseEntity {
      */
     public boolean applyChanges(Team newTeam, Epic newEpic, TicketType newType,
                                 TicketState newState, String newTitle, String newBody) {
-        boolean changed = false;
+        return !applyChangesTracked(newTeam, newEpic, newType, newState, newTitle, newBody).isEmpty();
+    }
+
+    /**
+     * Apply an incoming edit like {@link #applyChanges} but return the list of field-level diffs
+     * (HTS-041), one {@link TicketFieldChange} per field that actually changed — in a stable field
+     * order. Old/new values are captured as human-readable strings (team/epic display names, enum
+     * wire values, raw title/body) so the caller can persist an append-only activity row per change
+     * without re-resolving references. An identical save returns an empty list (AMB-3 no-op).
+     */
+    public List<TicketFieldChange> applyChangesTracked(Team newTeam, Epic newEpic, TicketType newType,
+                                                       TicketState newState, String newTitle,
+                                                       String newBody) {
+        List<TicketFieldChange> changes = new ArrayList<>();
         if (!Objects.equals(team.getId(), newTeam.getId())) {
+            changes.add(new TicketFieldChange(TicketFieldChange.TEAM, team.getName(), newTeam.getName()));
             team = newTeam;
-            changed = true;
         }
         if (!Objects.equals(epicId(epic), epicId(newEpic))) {
+            changes.add(new TicketFieldChange(TicketFieldChange.EPIC, epicTitle(epic), epicTitle(newEpic)));
             epic = newEpic;
-            changed = true;
         }
         if (type != newType) {
+            changes.add(new TicketFieldChange(TicketFieldChange.TYPE, type.wire(), newType.wire()));
             type = newType;
-            changed = true;
         }
         if (state != newState) {
+            changes.add(new TicketFieldChange(TicketFieldChange.STATE, state.wire(), newState.wire()));
             state = newState;
-            changed = true;
         }
         if (!title.equals(newTitle)) {
+            changes.add(new TicketFieldChange(TicketFieldChange.TITLE, title, newTitle));
             title = newTitle;
-            changed = true;
         }
         if (!body.equals(newBody)) {
+            changes.add(new TicketFieldChange(TicketFieldChange.BODY, body, newBody));
             body = newBody;
-            changed = true;
         }
-        return changed;
+        return changes;
     }
 
     /**
@@ -124,6 +139,10 @@ public class Ticket extends BaseEntity {
 
     private static UUID epicId(Epic epic) {
         return epic == null ? null : epic.getId();
+    }
+
+    private static String epicTitle(Epic epic) {
+        return epic == null ? null : epic.getTitle();
     }
 
     public Team getTeam() {

@@ -12,6 +12,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Clock;
+import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
 
@@ -32,14 +33,16 @@ public class TicketService {
     private final TeamRepository teams;
     private final EpicRepository epics;
     private final UserRepository users;
+    private final TicketActivityRepository activity;
     private final Clock clock;
 
     public TicketService(TicketRepository tickets, TeamRepository teams, EpicRepository epics,
-                         UserRepository users, Clock clock) {
+                         UserRepository users, TicketActivityRepository activity, Clock clock) {
         this.tickets = tickets;
         this.teams = teams;
         this.epics = epics;
         this.users = users;
+        this.activity = activity;
         this.clock = clock;
     }
 
@@ -70,19 +73,26 @@ public class TicketService {
                 .orElseThrow(() -> new NotFoundException("User not found: " + creatorEmail));
         TicketState initialState = state == null ? TicketState.NEW : state;
         Ticket ticket = new Ticket(team, epic, type, initialState, title.trim(), body.trim(), creator);
-        return tickets.save(ticket);
+        tickets.save(ticket);
+        // Record the creation as a single append-only activity entry (HTS-041, AC-1).
+        activity.save(new TicketActivity(ticket, creator.getEmail(), TicketFieldChange.CREATED,
+                null, null, clock.instant()));
+        return ticket;
     }
 
     @Transactional
     public Ticket update(UUID id, UUID teamId, UUID epicId, TicketType type, TicketState state,
-                         String title, String body) {
+                         String title, String body, String actorEmail) {
         Ticket ticket = get(id);
         Team team = requireTeam(teamId);
         Epic epic = resolveEpic(epicId);
         requireEpicSameTeam(team, epic);
         // Field-level diffing: modified_at advances only if something actually changed (AMB-3).
         // The timestamp itself is set by JPA Auditing when the change dirties the row (HTS-047).
-        ticket.applyChanges(team, epic, type, state, title.trim(), body.trim());
+        List<TicketFieldChange> changes = ticket.applyChangesTracked(team, epic, type, state,
+                title.trim(), body.trim());
+        // One append-only activity row per changed field; a no-op edit records nothing (AC-3).
+        recordActivity(ticket, changes, actorEmail);
         return ticket;
     }
 
@@ -91,10 +101,40 @@ public class TicketService {
      * advances {@code modified_at} so the board re-sorts (FR-K7, FR-B6). 404 if the ticket is gone.
      */
     @Transactional
-    public Ticket changeState(UUID id, TicketState newState) {
+    public Ticket changeState(UUID id, TicketState newState, String actorEmail) {
         Ticket ticket = get(id);
-        ticket.changeState(newState, clock.instant());
+        TicketState oldState = ticket.getState();
+        Instant now = clock.instant();
+        ticket.changeState(newState, now);
+        // Record only a real transition (AC-3): re-setting the same state still bumps modified_at
+        // (the HTS-027 board exception) but is not a history-worthy change.
+        if (oldState != newState) {
+            activity.save(new TicketActivity(ticket, EmailNormalizer.normalize(actorEmail),
+                    TicketFieldChange.STATE, oldState.wire(), newState.wire(), now));
+        }
         return ticket;
+    }
+
+    /**
+     * Ticket activity history, oldest-first (HTS-041, AC-2). 404 if the ticket does not exist so the
+     * nested resource stays honest.
+     */
+    @Transactional(readOnly = true)
+    public List<TicketActivity> activity(UUID ticketId) {
+        get(ticketId);
+        return activity.findByTicket_IdOrderBySeqAsc(ticketId);
+    }
+
+    // Append one activity row per changed field, all stamped with the same instant (HTS-041).
+    private void recordActivity(Ticket ticket, List<TicketFieldChange> changes, String actorEmail) {
+        if (changes.isEmpty()) {
+            return;
+        }
+        String actor = EmailNormalizer.normalize(actorEmail);
+        Instant now = clock.instant();
+        for (TicketFieldChange change : changes) {
+            activity.save(TicketActivity.of(ticket, actor, change, now));
+        }
     }
 
     @Transactional

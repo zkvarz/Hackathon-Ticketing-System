@@ -30,12 +30,14 @@ class BoardQueryServiceTest {
     private EpicRepository epics;
     @Mock
     private UserRepository users;
+    @Mock
+    private TicketActivityRepository activity;
 
     @Test
     void boardQueryUsesTeamScopedSearchWithNoFilters() {
         UUID teamId = UUID.randomUUID();
         when(tickets.search(teamId, null, null, null)).thenReturn(List.of());
-        TicketService service = new TicketService(tickets, teams, epics, users, Clock.systemUTC());
+        TicketService service = new TicketService(tickets, teams, epics, users, activity, Clock.systemUTC());
 
         service.search(teamId, null, null, null);
 

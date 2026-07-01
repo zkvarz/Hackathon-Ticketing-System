@@ -44,13 +44,15 @@ class TicketServiceTest {
     private EpicRepository epics;
     @Mock
     private UserRepository users;
+    @Mock
+    private TicketActivityRepository activity;
 
     private TicketService service() {
         return service(LATER);
     }
 
     private TicketService service(Instant now) {
-        return new TicketService(tickets, teams, epics, users, Clock.fixed(now, ZoneOffset.UTC));
+        return new TicketService(tickets, teams, epics, users, activity, Clock.fixed(now, ZoneOffset.UTC));
     }
 
     // Positive: create trims title/body, defaults a missing state to NEW, and sets created_by from
@@ -148,7 +150,7 @@ class TicketServiceTest {
         when(teams.findById(teamId)).thenReturn(Optional.of(team));
 
         Ticket result = service(LATER).update(id, teamId, null, TicketType.BUG, TicketState.IN_PROGRESS,
-                "New title", "Body");
+                "New title", "Body", "u@example.com");
 
         assertThat(result.getTitle()).isEqualTo("New title");
         assertThat(result.getState()).isEqualTo(TicketState.IN_PROGRESS);
@@ -165,7 +167,7 @@ class TicketServiceTest {
         when(teams.findById(teamId)).thenReturn(Optional.of(team));
 
         Ticket result = service(LATER).update(id, teamId, null, TicketType.BUG, TicketState.NEW,
-                "Title", "Body");
+                "Title", "Body", "u@example.com");
 
         assertThat(result.getTitle()).isEqualTo("Title");
         assertThat(result.getState()).isEqualTo(TicketState.NEW);

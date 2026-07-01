@@ -30,9 +30,11 @@ class FilterSearchServiceTest {
     private EpicRepository epics;
     @Mock
     private UserRepository users;
+    @Mock
+    private TicketActivityRepository activity;
 
     private TicketService service() {
-        return new TicketService(tickets, teams, epics, users, Clock.systemUTC());
+        return new TicketService(tickets, teams, epics, users, activity, Clock.systemUTC());
     }
 
     @Test

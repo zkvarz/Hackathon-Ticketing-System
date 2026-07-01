@@ -188,6 +188,7 @@ TICKET ──< COMMENT     (cascade delete — FR-K6)
 | **Epic** | id, team_id, title, description (null), created_at, modified_at | title non-empty trimmed (FR-E5); team_id immutable (FR-E2); delete blocked if referenced (FR-E8 → 409). |
 | **Ticket** | id, team_id, type, state, epic_id (null), title, body, created_at, modified_at, created_by | type ∈ {bug,feature,fix}; state ∈ 5 values; epic_id same team (FR-E7); modified-at advances only on real change (AMB-3). |
 | **Comment** | id, ticket_id, author_id, body, created_at, edited_at (null) | body non-empty (FR-C3); does not bump ticket.modified_at (FR-C5). Immutable by default (FR-C6); the EP-09 stretch (HTS-039) relaxes this so the **author** may edit/delete their own comment — edit stamps `edited_at`, non-author → 403. |
+| **TicketActivity** | id, seq (identity), ticket_id, actor_email, field, old_value (null), new_value (null), occurred_at | EP-09 stretch (HTS-041): append-only history — one row per changed field on create/edit + per state transition, written in the mutation's transaction. No-op saves record nothing (AMB-3). Never edited/deleted; cascades with its ticket. `seq` orders rows sharing an `occurred_at` (a multi-field edit). |
 
 **Field limits (AMB-1, binding):** password ≤128, title ≤200, body ≤10000 chars — enforced
 server-side and reflected in column types.
@@ -224,7 +225,8 @@ REST/JSON under `/api`. Conventions: plural nouns, UUIDv7 path IDs, ISO-8601 UTC
 | Teams | `GET/POST /api/teams`, `GET/PUT/DELETE /api/teams/{id}` | required |
 | Epics | `GET/POST /api/epics?teamId=…`, `GET/PUT/DELETE /api/epics/{id}` | required |
 | Tickets | `GET/POST /api/tickets?teamId=…&type=&epicId=&q=`, `GET/PUT/DELETE /api/tickets/{id}`, `PATCH /api/tickets/{id}/state` | required |
-| Comments | `GET/POST /api/tickets/{id}/comments` | required |
+| Comments | `GET/POST /api/tickets/{id}/comments`, `PUT/DELETE /api/tickets/{id}/comments/{commentId}` (author-only, HTS-039) | required |
+| Activity | `GET /api/tickets/{id}/activity` (append-only history, HTS-041) | required |
 | Board | served via `GET /api/tickets?teamId=…` ordered by modified desc | required |
 | Health | `GET /api/health` | public |
 

@@ -42,9 +42,11 @@ class EpicTeamRuleServiceTest {
     private EpicRepository epics;
     @Mock
     private UserRepository users;
+    @Mock
+    private TicketActivityRepository activity;
 
     private TicketService service() {
-        return new TicketService(tickets, teams, epics, users,
+        return new TicketService(tickets, teams, epics, users, activity,
                 Clock.fixed(Instant.parse("2026-06-01T00:00:00Z"), ZoneOffset.UTC));
     }
 
@@ -126,7 +128,7 @@ class EpicTeamRuleServiceTest {
         when(epics.findById(epicInA)).thenReturn(Optional.of(epic));
 
         assertThatThrownBy(() -> service().update(ticketId, teamB, epicInA, TicketType.BUG,
-                TicketState.NEW, "T", "B"))
+                TicketState.NEW, "T", "B", "u@example.com"))
                 .isInstanceOf(EpicTeamMismatchException.class);
     }
 
@@ -143,7 +145,7 @@ class EpicTeamRuleServiceTest {
         when(teams.findById(teamB)).thenReturn(Optional.of(newTeam));
 
         assertThatCode(() -> service().update(ticketId, teamB, null, TicketType.BUG,
-                TicketState.NEW, "T", "B")).doesNotThrowAnyException();
+                TicketState.NEW, "T", "B", "u@example.com")).doesNotThrowAnyException();
     }
 
     // AC-3 (boundary): the team change succeeds when the epic is replaced by a same-team epic.
@@ -162,6 +164,6 @@ class EpicTeamRuleServiceTest {
         when(epics.findById(epicInB)).thenReturn(Optional.of(epic));
 
         assertThatCode(() -> service().update(ticketId, teamB, epicInB, TicketType.BUG,
-                TicketState.NEW, "T", "B")).doesNotThrowAnyException();
+                TicketState.NEW, "T", "B", "u@example.com")).doesNotThrowAnyException();
     }
 }

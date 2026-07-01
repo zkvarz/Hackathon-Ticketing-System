@@ -1,6 +1,7 @@
 package com.dataart.tickets.ticket;
 
 import com.dataart.tickets.ticket.dto.StateChangeRequest;
+import com.dataart.tickets.ticket.dto.TicketActivityResponse;
 import com.dataart.tickets.ticket.dto.TicketRequest;
 import com.dataart.tickets.ticket.dto.TicketResponse;
 import jakarta.validation.Valid;
@@ -59,15 +60,22 @@ public class TicketController {
     }
 
     @PutMapping("/{id}")
-    public TicketResponse update(@PathVariable UUID id, @Valid @RequestBody TicketRequest request) {
+    public TicketResponse update(@PathVariable UUID id, @Valid @RequestBody TicketRequest request,
+                                 Authentication authentication) {
         Ticket ticket = tickets.update(id, request.teamId(), request.epicId(), request.type(),
-                request.state(), request.title(), request.body());
+                request.state(), request.title(), request.body(), authentication.getName());
         return TicketResponse.from(ticket);
     }
 
     @PatchMapping("/{id}/state")
-    public TicketResponse changeState(@PathVariable UUID id, @Valid @RequestBody StateChangeRequest request) {
-        return TicketResponse.from(tickets.changeState(id, request.state()));
+    public TicketResponse changeState(@PathVariable UUID id, @Valid @RequestBody StateChangeRequest request,
+                                      Authentication authentication) {
+        return TicketResponse.from(tickets.changeState(id, request.state(), authentication.getName()));
+    }
+
+    @GetMapping("/{id}/activity")
+    public List<TicketActivityResponse> activity(@PathVariable UUID id) {
+        return tickets.activity(id).stream().map(TicketActivityResponse::from).toList();
     }
 
     @DeleteMapping("/{id}")

@@ -39,9 +39,11 @@ class StateChangeServiceTest {
     private EpicRepository epics;
     @Mock
     private UserRepository users;
+    @Mock
+    private TicketActivityRepository activity;
 
     private TicketService service() {
-        return new TicketService(tickets, teams, epics, users, Clock.fixed(LATER, ZoneOffset.UTC));
+        return new TicketService(tickets, teams, epics, users, activity, Clock.fixed(LATER, ZoneOffset.UTC));
     }
 
     private Ticket ticketInState(TicketState state) {
@@ -61,7 +63,7 @@ class StateChangeServiceTest {
         Ticket ticket = ticketInState(TicketState.NEW);
         when(tickets.findById(id)).thenReturn(Optional.of(ticket));
 
-        Ticket result = service().changeState(id, TicketState.DONE);
+        Ticket result = service().changeState(id, TicketState.DONE, "u@example.com");
 
         assertThat(result.getState()).isEqualTo(TicketState.DONE);
         assertThat(result.getModifiedAt()).isEqualTo(LATER);
@@ -74,7 +76,7 @@ class StateChangeServiceTest {
         Ticket ticket = ticketInState(TicketState.IN_PROGRESS);
         when(tickets.findById(id)).thenReturn(Optional.of(ticket));
 
-        Ticket result = service().changeState(id, TicketState.IN_PROGRESS);
+        Ticket result = service().changeState(id, TicketState.IN_PROGRESS, "u@example.com");
 
         assertThat(result.getState()).isEqualTo(TicketState.IN_PROGRESS);
         assertThat(result.getModifiedAt()).isEqualTo(LATER);
@@ -86,7 +88,7 @@ class StateChangeServiceTest {
         UUID id = UUID.randomUUID();
         when(tickets.findById(id)).thenReturn(Optional.empty());
 
-        assertThatThrownBy(() -> service().changeState(id, TicketState.DONE))
+        assertThatThrownBy(() -> service().changeState(id, TicketState.DONE, "u@example.com"))
                 .isInstanceOf(NotFoundException.class);
     }
 }
