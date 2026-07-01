@@ -105,7 +105,7 @@ come from [`../requirements-analysis.md`](../requirements-analysis.md).
 ### EP-09 Stretch (optional, non-blocking)
 | ID | Type | Title | Story | Deps | Traceability | Status |
 |----|------|-------|-------|------|--------------|--------|
-| HTS-037 | BE | Password reset flow (backend) | ST-01 | HTS-011 | Stretch §2.10 | TODO |
+| HTS-037 | BE | Password reset flow (backend) | ST-01 | HTS-011 | Stretch §2.10 | DONE |
 | HTS-038 | FE | Password reset flow (frontend) | ST-01 | HTS-037 | Stretch §2.10 | TODO |
 | HTS-039 | BE | Edit/delete own comments (backend) | ST-02 | HTS-023 | Stretch §2.10 | TODO |
 | HTS-040 | FE | Edit/delete own comments (frontend) | ST-02 | HTS-039 | Stretch §2.10 | TODO |

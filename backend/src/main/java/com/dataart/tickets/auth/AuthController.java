@@ -1,8 +1,11 @@
 package com.dataart.tickets.auth;
 
+import com.dataart.tickets.auth.dto.ForgotPasswordRequest;
 import com.dataart.tickets.auth.dto.LoginRequest;
 import com.dataart.tickets.auth.dto.ResendRequest;
+import com.dataart.tickets.auth.dto.ResetPasswordRequest;
 import com.dataart.tickets.auth.dto.SignupRequest;
+import com.dataart.tickets.auth.dto.StatusResponse;
 import com.dataart.tickets.auth.dto.UserResponse;
 import com.dataart.tickets.auth.dto.VerificationResult;
 import com.dataart.tickets.config.SessionAbsoluteTimeoutFilter;
@@ -39,6 +42,7 @@ public class AuthController {
 
     private final AuthService authService;
     private final EmailVerificationService emailVerification;
+    private final PasswordResetService passwordReset;
     private final AuthenticationManager authenticationManager;
     private final SecurityContextRepository securityContextRepository;
     private final UserRepository users;
@@ -46,12 +50,14 @@ public class AuthController {
 
     public AuthController(AuthService authService,
                           EmailVerificationService emailVerification,
+                          PasswordResetService passwordReset,
                           AuthenticationManager authenticationManager,
                           SecurityContextRepository securityContextRepository,
                           UserRepository users,
                           Clock clock) {
         this.authService = authService;
         this.emailVerification = emailVerification;
+        this.passwordReset = passwordReset;
         this.authenticationManager = authenticationManager;
         this.securityContextRepository = securityContextRepository;
         this.users = users;
@@ -84,6 +90,29 @@ public class AuthController {
     public VerificationResult resend(@Valid @RequestBody ResendRequest request) {
         emailVerification.resend(request.email());
         return new VerificationResult("sent", request.email());
+    }
+
+    /**
+     * Request a password reset (HTS-037). Public. Always returns 202 with a generic body
+     * regardless of whether the account exists (no enumeration); a reset email is sent only if it
+     * does.
+     */
+    @PostMapping("/forgot-password")
+    @ResponseStatus(HttpStatus.ACCEPTED)
+    public StatusResponse forgotPassword(@Valid @RequestBody ForgotPasswordRequest request) {
+        passwordReset.requestReset(request.email());
+        return new StatusResponse("sent");
+    }
+
+    /**
+     * Complete a password reset with the emailed token and a new password (HTS-037). Public; does
+     * not create a session. Invalid/expired/consumed tokens → 400 TOKEN_INVALID; a too-short/long
+     * password → 400 VALIDATION_FAILED (both via the exception handler).
+     */
+    @PostMapping("/reset-password")
+    public StatusResponse resetPassword(@Valid @RequestBody ResetPasswordRequest request) {
+        passwordReset.reset(request.token(), request.password());
+        return new StatusResponse("reset");
     }
 
     /**

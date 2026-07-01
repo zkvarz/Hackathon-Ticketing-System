@@ -43,6 +43,11 @@ public class User extends BaseEntity {
         return passwordHash;
     }
 
+    /** Replace the stored hash (password reset, HTS-037). Callers pass an already-Argon2id hash. */
+    public void setPasswordHash(String passwordHash) {
+        this.passwordHash = passwordHash;
+    }
+
     public boolean isEmailVerified() {
         return emailVerified;
     }

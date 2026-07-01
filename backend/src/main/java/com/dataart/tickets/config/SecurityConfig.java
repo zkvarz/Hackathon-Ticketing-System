@@ -61,7 +61,8 @@ public class SecurityConfig {
                         // Pre-session endpoints have no session to protect; logout just clears it.
                         .ignoringRequestMatchers(
                                 "/api/auth/signup", "/api/auth/login",
-                                "/api/auth/logout", "/api/auth/resend"))
+                                "/api/auth/logout", "/api/auth/resend",
+                                "/api/auth/forgot-password", "/api/auth/reset-password"))
                 // Emit the XSRF-TOKEN cookie once the token is resolved.
                 .addFilterAfter(new CsrfCookieFilter(), BasicAuthenticationFilter.class)
                 // Enforce the absolute session lifetime cap before authorization (HTS-046): an
@@ -71,7 +72,8 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(HttpMethod.GET, "/api/health").permitAll()
                         .requestMatchers(HttpMethod.POST,
-                                "/api/auth/signup", "/api/auth/login", "/api/auth/resend").permitAll()
+                                "/api/auth/signup", "/api/auth/login", "/api/auth/resend",
+                                "/api/auth/forgot-password", "/api/auth/reset-password").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/auth/verify").permitAll()
                         // Everything else (incl. /api/auth/me, /logout, and all business endpoints)
                         // requires authentication.

@@ -56,3 +56,6 @@ app:
     absolute-timeout: ${APP_SESSION_TIMEOUT_ABSOLUTE:8h}
   verification:
     token-ttl: ${APP_VERIFICATION_TOKEN_TTL:24h}
+  password-reset:
+    # Shorter TTL than verification: reset links are higher-value and single-use (HTS-037).
+    token-ttl: ${APP_PASSWORD_RESET_TOKEN_TTL:1h}
