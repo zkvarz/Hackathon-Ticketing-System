@@ -6,7 +6,7 @@
 | **Type** | QA/E2E |
 | **Epic** | EP-08 Cross-cutting & Delivery |
 | **Story** | ST-05 E2E (should-have) |
-| **Status** | TODO |
+| **Status** | IN-REVIEW |
 | **Depends on** | HTS-028, HTS-035 |
 | **Blocks** | — |
 | **Priority** | Should-have (non-blocking) |
@@ -30,10 +30,12 @@ running against the full `docker compose` stack with Mailpit.
 - Specs are independent and reset state by creating their own data (no shared fixtures relied upon).
 
 ## Acceptance criteria
-- [ ] AC-1 — Signup→verify→login spec passes using Mailpit to obtain the link.
-- [ ] AC-2 — Drag-persists-after-refresh spec passes.
-- [ ] AC-3 — Ticket CRUD spec passes.
-- [ ] AC-4 — Suite runs against `docker compose` and documents how to run it.
+- [x] AC-1 — Signup→verify→login spec passes using Mailpit to obtain the link. **Verified green
+  against the live stack.**
+- [~] AC-2 — Drag-persists-after-refresh spec authored; needs a freshly built stack to run green
+  (see Verification status).
+- [~] AC-3 — Ticket CRUD spec authored; needs a freshly built stack to run green.
+- [x] AC-4 — Suite runs against `docker compose`; run instructions documented (README + below).
 
 ## Test plan
 The suite *is* the test. Reliability practices:
@@ -47,7 +49,32 @@ cd frontend && npx playwright test
 ```
 
 ## Definition of Done
-- [ ] AC-1..AC-4 met
-- [ ] All specs green against the composed stack
-- [ ] Run instructions documented (README/HTS-034)
-- [ ] INDEX.md status updated
+- [x] AC-1 + AC-4 met; AC-2/AC-3 specs authored (see Verification status)
+- [ ] **All specs green against the composed stack** — pending a fresh `docker compose up --build`
+  (the currently-running containers are a stale build; 2/5 green live, see below)
+- [x] Run instructions documented (README §Running the tests)
+- [x] INDEX.md status updated (IN-REVIEW)
+
+## Implementation notes (as built)
+- **Tooling:** `@playwright/test` (^1.61) + chromium. `frontend/playwright.config.ts`: `testDir
+  ./e2e`, baseURL `http://localhost:8081` (override `PW_BASE_URL`), Mailpit at `:8025` (override
+  `MAILPIT_URL`). Two projects — a `setup` project (`auth.setup.ts`) registers/verifies/logs in one
+  shared user and saves `storageState`; the `e2e` project reuses it (`dependencies: ['setup']`) so
+  most specs skip re-verifying. `npm run e2e` / `npm run e2e:report` added.
+- **Vitest isolation:** `vite.config.ts` `test.include` scoped to `src/**` so Vitest never collects
+  the `*.spec.ts` E2E files; `.gitignore` ignores `frontend/e2e/.auth/` (saved session) + reports.
+- **Specs (5):** `auth.spec.ts` (DoD-1, opts out of the shared session to log in from scratch);
+  `ticket-crud.spec.ts` (DoD-3); `board-drag.spec.ts` (DoD-6 — real mouse drag that clears dnd-kit's
+  5px activation distance, then asserts persistence after `page.reload()`); `teams.spec.ts`
+  (optional delete-when-referenced guard). `helpers.ts` centralizes unique data, Mailpit link
+  extraction (`expect.poll` over the search + message APIs — no fixed sleeps), and team/ticket
+  creation. Selectors are role/label/text based.
+- **Verification status:** config validated (`playwright test --list` → 5 tests) and run against the
+  live stack: **2/5 green — the `setup` auth bootstrap and `auth.spec` (DoD-1 signup→verify→login
+  via Mailpit) pass end-to-end.** The other 3 fail only because the running `hts-frontend`/backend
+  containers are an **old image** — the page snapshot shows the pre-HTS-020 placeholder ("This
+  screen is implemented in a later ticket.") at `/tickets/new`. They are not spec defects; the app
+  code they exercise already has full green unit/integration coverage. Running all 5 green requires
+  rebuilding the stack from current source (`docker compose up --build -d`, or the podman build +
+  `--no-build` path), which is the operator step this ticket documents — the live stack here is not
+  managed by this session's engine, so it was not torn down/rebuilt.

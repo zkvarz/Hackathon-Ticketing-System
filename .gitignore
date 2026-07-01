@@ -50,7 +50,11 @@ pnpm-debug.log*
 # ---- Test / tooling output ----
 playwright-report/
 test-results/
+blob-report/
 .nyc_output/
+# Playwright E2E (HTS-036): saved auth session + last-run metadata (never commit sessions).
+frontend/e2e/.auth/
+.last-run.json
 
 # ---- Docker / runtime volumes (if any local bind mounts) ----
 *.pid

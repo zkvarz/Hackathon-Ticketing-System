@@ -21,5 +21,8 @@ export default defineConfig({
     environment: 'jsdom',
     setupFiles: ['./src/test/setup.ts'],
     css: false,
+    // Vitest owns the unit/component tests under src/. The Playwright E2E specs live in ./e2e
+    // (also *.spec.ts) and must not be collected by Vitest — scope the include to src/.
+    include: ['src/**/*.{test,spec}.{ts,tsx}'],
   },
 });

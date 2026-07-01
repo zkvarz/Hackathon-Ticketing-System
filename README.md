@@ -155,13 +155,24 @@ npm test        # vitest run
 npm run typecheck
 ```
 
-**End-to-end — Playwright critical paths (HTS-036, should-have).** Runs against the composed
-stack (uses Mailpit's HTTP API to read the verification link):
+**End-to-end — Playwright critical paths (HTS-036, should-have).** Five specs run against the
+composed stack in a real browser: signup → verify (read from Mailpit's HTTP API) → login (DoD-1),
+ticket create/edit/delete (DoD-3), drag-persists-after-refresh (DoD-6), and a team
+delete-when-referenced guard. A `setup` project registers/verifies/logs in one shared user; each
+spec creates its own team/ticket.
 
 ```bash
-docker compose up --build -d        # or the podman --no-build path above
-cd frontend && npx playwright test
+# The stack MUST be built from current source — start it fresh so the containers aren't stale:
+docker compose up --build -d        # or the podman build + --no-build path above
+cd frontend
+npm ci                              # first time only
+npx playwright install chromium     # first time only (downloads the browser)
+npm run e2e                         # = playwright test  (npm run e2e:report to open the HTML report)
 ```
+
+Targets default to `http://localhost:8081` (app) and `http://localhost:8025` (Mailpit); override
+with `PW_BASE_URL` / `MAILPIT_URL` if your ports differ. The suite assumes the stack is already up —
+it does not start it.
 
 ## Troubleshooting
 
