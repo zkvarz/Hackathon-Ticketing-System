@@ -45,11 +45,19 @@ const BLANK: FormState = {
   body: '',
 };
 
-/** Turn the backend's fieldErrors[] into a {field: message} map for inline display. */
+/**
+ * Turn a backend error into a {field: message} map for inline display. Bean-validation errors
+ * arrive as fieldErrors[]; the epic-same-team rule (FR-E7/FR-K5, HTS-021) arrives as a top-level
+ * EPIC_TEAM_MISMATCH code with no field, so map it onto the epic field defensively — the UI
+ * shouldn't let it happen (HTS-022 clears the epic on team change), but a race must not crash.
+ */
 function fieldErrorsOf(err: unknown): Record<string, string> {
   if (err instanceof ApiError) {
     const map: Record<string, string> = {};
     for (const fe of err.fieldErrors) map[fe.field] = fe.message;
+    if (err.code === 'EPIC_TEAM_MISMATCH' && !map.epicId) {
+      map.epicId = 'That epic belongs to a different team. Pick an epic from this team.';
+    }
     return map;
   }
   return {};
@@ -109,6 +117,13 @@ export function TicketDetailsPage() {
 
   function set<K extends keyof FormState>(key: K, value: FormState[K]) {
     setForm((f) => ({ ...f, [key]: value }));
+  }
+
+  // Changing the team clears the selected epic (FR-K5) — the epic dropdown then reloads for the
+  // new team (its query is keyed by teamId), so a now-cross-team epic can never be submitted.
+  function changeTeam(teamId: string) {
+    setForm((f) => ({ ...f, teamId, epicId: '' }));
+    setFieldErrors((e) => ({ ...e, epicId: '', teamId: '' }));
   }
 
   const payload = (): TicketInput => ({
@@ -191,7 +206,7 @@ export function TicketDetailsPage() {
         <select
           id="ticket-team"
           value={form.teamId}
-          onChange={(e) => set('teamId', e.target.value)}
+          onChange={(e) => changeTeam(e.target.value)}
         >
           <option value="">Select a team…</option>
           {teams.map((team) => (
