@@ -80,7 +80,7 @@ come from [`../requirements-analysis.md`](../requirements-analysis.md).
 | ID | Type | Title | Story | Deps | Traceability | Status |
 |----|------|-------|-------|------|--------------|--------|
 | HTS-023 | BE | Comment add + list: chronological, non-empty, immutable, no modified-at bump | ST-01 | HTS-019 | FR-C1..C6 | DONE |
-| HTS-024 | FE | Comments panel: list oldest-first, add comment | ST-01 | HTS-020,HTS-023 | FR-C4; FR-S6 | TODO |
+| HTS-024 | FE | Comments panel: list oldest-first, add comment | ST-01 | HTS-020,HTS-023 | FR-C4; FR-S6 | DONE |
 
 ### EP-07 Kanban Board
 | ID | Type | Title | Story | Deps | Traceability | Status |

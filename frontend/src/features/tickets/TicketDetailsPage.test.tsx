@@ -41,6 +41,8 @@ function baseHandlers() {
         teamId === 't1' ? [{ id: 'e1', teamId: 't1', title: 'Checkout', description: null, ticketCount: 1, createdAt: 'x', modifiedAt: 'x' }] : [],
       );
     }),
+    // The edit view embeds the comments panel (HTS-024), which lists comments on mount.
+    http.get('/api/tickets/1/comments', () => HttpResponse.json([])),
   ];
 }
 

@@ -26,6 +26,7 @@ import {
 } from '../../api/tickets';
 import { Loading } from '../../components/Loading';
 import { ErrorState } from '../../components/ErrorState';
+import { CommentsPanel } from './CommentsPanel';
 
 interface FormState {
   teamId: string;
@@ -302,6 +303,9 @@ export function TicketDetailsPage() {
         {formError && <p className="form__error" role="alert">{formError}</p>}
         {saved && <p className="form__success" role="status">Saved.</p>}
       </form>
+
+      {/* Comments exist only for a persisted ticket (HTS-024). */}
+      {!isCreate && id && <CommentsPanel ticketId={id} />}
     </section>
   );
 }

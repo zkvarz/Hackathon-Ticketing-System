@@ -6,7 +6,7 @@
 | **Type** | FE |
 | **Epic** | EP-06 Comments |
 | **Story** | ST-01 Comments |
-| **Status** | TODO |
+| **Status** | DONE |
 | **Depends on** | HTS-020, HTS-023 |
 | **Blocks** | — |
 | **Traceability** | FR-C1, FR-C3, FR-C4; FR-S6; NFR-3; architecture.md §11; wireframe image3 |
@@ -27,10 +27,10 @@ timestamp) and a form to post a new non-empty comment.
 - Note (UX): posting a comment does not reorder the board (FR-C5) — no board refresh triggered.
 
 ## Acceptance criteria
-- [ ] AC-1 — Existing comments render oldest-first with author and timestamp.
-- [ ] AC-2 — Posting a non-empty comment adds it to the list.
-- [ ] AC-3 — Empty/whitespace body is blocked client-side; server 400 also handled.
-- [ ] AC-4 — Empty state shown when a ticket has no comments.
+- [x] AC-1 — Existing comments render oldest-first with author and timestamp.
+- [x] AC-2 — Posting a non-empty comment adds it to the list.
+- [x] AC-3 — Empty/whitespace body is blocked client-side; server 400 also handled.
+- [x] AC-4 — Empty state shown when a ticket has no comments.
 
 ## Test plan
 **Component (Vitest + RTL):**
@@ -43,12 +43,12 @@ timestamp) and a form to post a new non-empty comment.
 
 ## How to run / verify
 ```bash
-cd frontend && npm test -- comments
+cd frontend && npm test -- CommentsPanel
 npm run dev   # open a ticket, scroll to comments
 ```
 
 ## Definition of Done
-- [ ] AC-1..AC-4 met
-- [ ] Component + MSW tests pass (positive/negative/boundary)
-- [ ] Oldest-first ordering + author/time display match wireframe image3
-- [ ] INDEX.md status updated
+- [x] AC-1..AC-4 met
+- [x] Component + MSW tests pass (positive/negative/boundary)
+- [x] Oldest-first ordering + author/time display match wireframe image3
+- [x] INDEX.md status updated

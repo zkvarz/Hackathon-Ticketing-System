@@ -53,6 +53,7 @@ describe('App shell', () => {
         HttpResponse.json([{ id: 't1', name: 'Payments', epicCount: 0, ticketCount: 1, createdAt: 'x', modifiedAt: 'x' }]),
       ),
       http.get('/api/epics', () => HttpResponse.json([])),
+      http.get('/api/tickets/TCK-1042/comments', () => HttpResponse.json([])),
       http.get('/api/tickets/TCK-1042', () =>
         HttpResponse.json({
           id: 'TCK-1042',
