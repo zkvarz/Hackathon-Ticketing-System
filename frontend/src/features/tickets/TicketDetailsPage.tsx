@@ -9,6 +9,7 @@ import { useEffect, useState, type FormEvent } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { ApiError } from '../../api/client';
+import { fieldErrorsOf as baseFieldErrorsOf, messageOf } from '../../lib/apiError';
 import { listTeams } from '../../api/teams';
 import { listEpics } from '../../api/epics';
 import {
@@ -47,21 +48,18 @@ const BLANK: FormState = {
 };
 
 /**
- * Turn a backend error into a {field: message} map for inline display. Bean-validation errors
- * arrive as fieldErrors[]; the epic-same-team rule (FR-E7/FR-K5, HTS-021) arrives as a top-level
- * EPIC_TEAM_MISMATCH code with no field, so map it onto the epic field defensively — the UI
- * shouldn't let it happen (HTS-022 clears the epic on team change), but a race must not crash.
+ * Turn a backend error into a {field: message} map for inline display. Builds on the shared
+ * error-model parser (HTS-032) for the standard fieldErrors[], then adds the feature-specific
+ * epic-same-team rule (FR-E7/FR-K5, HTS-021): it arrives as a top-level EPIC_TEAM_MISMATCH code
+ * with no field, so map it onto the epic field defensively — the UI shouldn't let it happen
+ * (HTS-022 clears the epic on team change), but a race must not crash.
  */
 function fieldErrorsOf(err: unknown): Record<string, string> {
-  if (err instanceof ApiError) {
-    const map: Record<string, string> = {};
-    for (const fe of err.fieldErrors) map[fe.field] = fe.message;
-    if (err.code === 'EPIC_TEAM_MISMATCH' && !map.epicId) {
-      map.epicId = 'That epic belongs to a different team. Pick an epic from this team.';
-    }
-    return map;
+  const map = baseFieldErrorsOf(err);
+  if (err instanceof ApiError && err.code === 'EPIC_TEAM_MISMATCH' && !map.epicId) {
+    map.epicId = 'That epic belongs to a different team. Pick an epic from this team.';
   }
-  return {};
+  return map;
 }
 
 export function TicketDetailsPage() {
@@ -151,7 +149,7 @@ export function TicketDetailsPage() {
     },
     onError: (err) => {
       setFieldErrors(fieldErrorsOf(err));
-      setFormError(err instanceof ApiError ? err.message : 'Could not save the ticket.');
+      setFormError(messageOf(err, 'Could not save the ticket.'));
     },
   });
 
@@ -161,8 +159,7 @@ export function TicketDetailsPage() {
       void queryClient.invalidateQueries({ queryKey: ['tickets'] });
       navigate('/board');
     },
-    onError: (err) =>
-      setFormError(err instanceof ApiError ? err.message : 'Could not delete the ticket.'),
+    onError: (err) => setFormError(messageOf(err, 'Could not delete the ticket.')),
   });
 
   function submit(e: FormEvent) {

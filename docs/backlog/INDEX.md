@@ -96,7 +96,7 @@ come from [`../requirements-analysis.md`](../requirements-analysis.md).
 | ID | Type | Title | Story | Deps | Traceability | Status |
 |----|------|-------|-------|------|--------------|--------|
 | HTS-031 | BE | Standardized error response model + global exception handling + status codes | ST-01 | HTS-013 | FR-P4; NFR-1 | DONE |
-| HTS-032 | FE | Global loading/empty/error/success UX + error boundary/toast | ST-01 | HTS-003 | NFR-3 | TODO |
+| HTS-032 | FE | Global loading/empty/error/success UX + error boundary/toast | ST-01 | HTS-003 | NFR-3 | DONE |
 | HTS-033 | BE | Security hardening: env secrets, headers, no committed secrets, CSRF/SameSite review | ST-02 | HTS-013 | NFR-1; DoD-8 | DONE |
 | HTS-034 | DOCS | README: prerequisites, configuration, startup, run/test commands | ST-03 | HTS-001 | NFR-5; DoD-7 | TODO |
 | HTS-035 | QA | Fresh-DB/no-seed verification + DoD acceptance checklist run-through | ST-04 | (most) | DoD-1..DoD-10 | TODO |
