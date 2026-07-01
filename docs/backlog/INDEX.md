@@ -90,7 +90,7 @@ come from [`../requirements-analysis.md`](../requirements-analysis.md).
 | HTS-027 | BE | State-change endpoint: validate enum, persist, advance modified-at | ST-02 | HTS-019 | FR-K7,FR-B4,B6; FR-P1 | DONE |
 | HTS-028 | FE | Drag-drop (dnd-kit): optimistic move + revert-on-failure + error | ST-02 | HTS-026,HTS-027 | FR-B4,B5,B6 | TODO |
 | HTS-029 | BE | Server-side filter (type, epic) + title substring search (AND) | ST-03 | HTS-025 | FR-B9; AMB-10 | DONE |
-| HTS-030 | FE | Filter/search controls + wiring + clear | ST-03 | HTS-026,HTS-029 | FR-B9; NFR-3 | TODO |
+| HTS-030 | FE | Filter/search controls + wiring + clear | ST-03 | HTS-026,HTS-029 | FR-B9; NFR-3 | DONE |
 
 ### EP-08 Cross-cutting & Delivery
 | ID | Type | Title | Story | Deps | Traceability | Status |

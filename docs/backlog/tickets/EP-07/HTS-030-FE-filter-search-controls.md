@@ -27,10 +27,10 @@ action — wired to the server-side filtered query, combined with AND.
 - Epic options scoped to the selected team; Clear resets all filters.
 
 ## Acceptance criteria
-- [ ] AC-1 — Typing in search narrows the board (case-insensitive substring).
-- [ ] AC-2 — Type and epic filters narrow the board; combined filters AND together.
-- [ ] AC-3 — Clear resets all filters and restores the full board.
-- [ ] AC-4 — A filtered-to-empty result shows an empty state, not an error.
+- [x] AC-1 — Typing in search narrows the board (case-insensitive substring).
+- [x] AC-2 — Type and epic filters narrow the board; combined filters AND together.
+- [x] AC-3 — Clear resets all filters and restores the full board.
+- [x] AC-4 — A filtered-to-empty result shows an empty state, not an error.
 
 ## Test plan
 **Component (Vitest + RTL):**
@@ -48,7 +48,17 @@ npm run dev   # /board, use Search/Type/Epic/Clear
 ```
 
 ## Definition of Done
-- [ ] AC-1..AC-4 met
-- [ ] Component + MSW tests pass (positive/negative/boundary)
-- [ ] Controls + count match wireframe image1
-- [ ] INDEX.md status updated
+- [x] AC-1..AC-4 met
+- [x] Component + MSW tests pass (positive/negative/boundary) — `filters.test.tsx` (6); existing
+  `BoardPage.test.tsx` still green
+- [x] Controls + count match wireframe image1 (Search / Type / Epic / Clear + result count)
+- [x] INDEX.md status updated
+
+## Implementation notes (as built)
+- Extended `BoardPage` with a `role="search"` toolbar: debounced title search (250ms), type and
+  epic selects, a Clear button (disabled when no filter is active), and a live result count.
+- All active filters combine into the server query key `['tickets', teamId, type, epic, q]` →
+  `listTickets(teamId, {type, epicId, q})` (server-side AND, HTS-029). Epic options are scoped to
+  the selected team; switching team resets the epic filter.
+- Filtered-to-empty renders the shared `Empty` state (with a Clear action), never an error.
+- Test infra: added a default empty `/api/epics` MSW handler (board now loads the team's epics).
